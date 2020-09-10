@@ -4,7 +4,7 @@ import torch
 from torch.optim import Adam
 import gym
 import time
-import spinup.algos.pytorch.ddpg.core as core
+import core as core
 from spinup.utils.logx import EpochLogger
 
 
@@ -150,9 +150,7 @@ def ddpg(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
     act_limit = env.action_space.high[0]
 
     # Create actor-critic module and target networks
-    ac = actor_critic(observation_space=env.observation_space['observation'],
-                      action_space=env.action_space,
-                      goal_space=env.observation_space['desired_goal'], **ac_kwargs)
+    ac = actor_critic(env.observation_space['observation'], env.action_space, env.observation_space['desired_goal'], **ac_kwargs)
     ac_targ = deepcopy(ac)
 
     # Freeze target networks with respect to optimizers (only update via polyak averaging)

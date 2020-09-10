@@ -57,6 +57,6 @@ class MLPActorCritic(nn.Module):
         self.pi = MLPActor(obs_dim, act_dim, goal_dim, hidden_sizes, activation, act_limit)
         self.q = MLPQFunction(obs_dim, act_dim, goal_dim, hidden_sizes, activation)
 
-    def act(self, obs):
+    def act(self, obs, goal):
         with torch.no_grad():
-            return self.pi(obs).numpy()
+            return self.pi(obs, goal).numpy()
