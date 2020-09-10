@@ -22,39 +22,40 @@ def count_vars(module):
 
 class MLPActor(nn.Module):
 
-    def __init__(self, obs_dim, act_dim, hidden_sizes, activation, act_limit):
+    def __init__(self, obs_dim, act_dim, goal_dim, hidden_sizes, activation, act_limit):
         super().__init__()
-        pi_sizes = [obs_dim] + list(hidden_sizes) + [act_dim]
+        pi_sizes = [obs_dim + goal_dim] + list(hidden_sizes) + [act_dim]
         self.pi = mlp(pi_sizes, activation, nn.Tanh)
         self.act_limit = act_limit
 
-    def forward(self, obs):
+    def forward(self, obs, goal):
         # Return output from network scaled to action space limits.
-        return self.act_limit * self.pi(obs)
+        return self.act_limit * self.pi(torch.cat([obs, goal], dim=-1))
 
 class MLPQFunction(nn.Module):
 
-    def __init__(self, obs_dim, act_dim, hidden_sizes, activation):
+    def __init__(self, obs_dim, act_dim, goal_dim, hidden_sizes, activation):
         super().__init__()
-        self.q = mlp([obs_dim + act_dim] + list(hidden_sizes) + [1], activation)
+        self.q = mlp([obs_dim + act_dim + goal_dim] + list(hidden_sizes) + [1], activation)
 
-    def forward(self, obs, act):
-        q = self.q(torch.cat([obs, act], dim=-1))
+    def forward(self, obs, act, goal):
+        q = self.q(torch.cat([obs, act, goal], dim=-1))
         return torch.squeeze(q, -1) # Critical to ensure q has right shape.
 
 class MLPActorCritic(nn.Module):
 
-    def __init__(self, observation_space, action_space, hidden_sizes=(256,256),
+    def __init__(self, observation_space, action_space, goal_space, hidden_sizes=(256,256),
                  activation=nn.ReLU):
         super().__init__()
 
         obs_dim = observation_space.shape[0]
         act_dim = action_space.shape[0]
+        goal_dim = goal_space.shape[0]
         act_limit = action_space.high[0]
 
         # build policy and value functions
-        self.pi = MLPActor(obs_dim, act_dim, hidden_sizes, activation, act_limit)
-        self.q = MLPQFunction(obs_dim, act_dim, hidden_sizes, activation)
+        self.pi = MLPActor(obs_dim, act_dim, goal_dim, hidden_sizes, activation, act_limit)
+        self.q = MLPQFunction(obs_dim, act_dim, goal_dim, hidden_sizes, activation)
 
     def act(self, obs):
         with torch.no_grad():
