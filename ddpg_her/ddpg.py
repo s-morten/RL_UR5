@@ -270,6 +270,7 @@ def ddpg(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
         o2, r, d, _ = env.step(a)
         # r = calc_reward(o2['achieved_goal'], o2['desired_goal'])
         g = o2['desired_goal']
+        g_her = o2['achieved_goal']
         o2 = o2['observation']
         ep_ret += r
         ep_len += 1
@@ -281,6 +282,7 @@ def ddpg(env_fn, actor_critic=core.MLPActorCritic, ac_kwargs=dict(), seed=0,
 
         # Store experience to replay buffer
         replay_buffer.store(o, a, g, r, o2, d)
+        replay_buffer.store(o, a, g_her, 1, o2, True)
 
         # Super critical, easy to overlook step: make sure to update
         # most recent observation!
