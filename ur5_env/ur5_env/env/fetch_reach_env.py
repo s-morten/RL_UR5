@@ -1,12 +1,12 @@
 import os
 from gym import utils
-from gym import fetch_env
+from gym import FetchEnv
 
 # Ensure we get the path separator correct on windows
 MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/reach.xml'
 
 
-class UR5(fetch_env.FetchEnv, utils.EzPickle):
+class UR5(FetchEnv, utils.EzPickle):
     def __init__(self, reward_type='sparse'):
         initial_qpos = {
             'robot0:slide0': 0.4049,
