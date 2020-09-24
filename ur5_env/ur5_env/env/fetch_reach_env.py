@@ -1,6 +1,6 @@
 import os
 from gym import utils
-from env.robotics import fetch_env
+from gym import fetch_env
 
 # Ensure we get the path separator correct on windows
 MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/reach.xml'
