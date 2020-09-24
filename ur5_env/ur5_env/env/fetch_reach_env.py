@@ -1,9 +1,15 @@
 import os
 from gym import utils
-from gym import FetchEnv
+import sys
+sys.path.append('/home/morten/.local/lib/python3.6/site-packages/gym/envs/robotics')
+from fetch_env import FetchEnv
+
+# from env.robotics import fetch_env
+
 
 # Ensure we get the path separator correct on windows
 MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/reach.xml'
+
 
 
 class UR5(FetchEnv, utils.EzPickle):
