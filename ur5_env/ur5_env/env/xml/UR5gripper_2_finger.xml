@@ -132,7 +132,7 @@ Control Engineering / Automation Engineering
             <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
         </body>
 
-<!--
+
         <body name="drop_box" pos="0.6 0.1 0.0">
             <geom size=".2 .3 .03" pos ="0 0 0.615" type="box" material="bench_mat"/>
             <geom size=".03 .3 .4" pos ="0.23 0.0 0.4" type="box" material="bench_mat"/>
@@ -141,7 +141,7 @@ Control Engineering / Automation Engineering
             <geom size=".26 .03 .4" pos ="0.0 -0.33 0.4" type="box" material="bench_mat"/>
             <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
         </body>
--->
+
 
         <!--Robot UR5-->
         <body name="box_link" pos="0 0 0.435">
