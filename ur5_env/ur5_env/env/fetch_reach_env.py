@@ -117,13 +117,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         # Turn this on for training, so the objects drop down before the observation
         self.controller.stay(1000, render=self.render)
-        if self.demo_mode:
-            self.controller.stay(2000, render=self.render)
+        #if self.demo_mode:
+        #    self.controller.stay(2000, render=self.render)
+
         # return an observation image
         return self.get_observation(show=self.show_observations)
-
-    #def do_render(self):
-    #    self.viewer.render()
 
     def get_observation(self, show=True):
         """
