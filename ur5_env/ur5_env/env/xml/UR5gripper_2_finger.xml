@@ -132,7 +132,7 @@ Control Engineering / Automation Engineering
             <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
         </body>
 
-
+<!--
         <body name="drop_box" pos="0.6 0.1 0.0">
             <geom size=".2 .3 .03" pos ="0 0 0.615" type="box" material="bench_mat"/>
             <geom size=".03 .3 .4" pos ="0.23 0.0 0.4" type="box" material="bench_mat"/>
@@ -141,7 +141,7 @@ Control Engineering / Automation Engineering
             <geom size=".26 .03 .4" pos ="0.0 -0.33 0.4" type="box" material="bench_mat"/>
             <inertial pos="0 0 0" mass="1000" diaginertia="0 0 0" />
         </body>
-
+-->
 
         <!--Robot UR5-->
         <body name="box_link" pos="0 0 0.435">
@@ -188,7 +188,7 @@ Control Engineering / Automation Engineering
                                             <body name="robotiq_85_base_link" pos="0 0 0" quat="0.5 0.5 0.5 0.5 ">
                                             <inertial pos="0.00021987 -2.3546e-10 0.030163"  quat="0.707058 0.00723369 0.00723345 0.707081" mass="0.30915" diaginertia="0.00030737 0.000289758 0.000199102" />
                                             <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="robotiq_85_base_link_coarse" />
-                                      
+
                                             <body name="left_inner_knuckle" pos="0.0127 0 0.0693075">
                                                 <inertial pos="0.0170975 -3.93809e-10 0.0224918"   quat="0.947655 0 -0.319297 0" mass="0.0110931" diaginertia="5.59353e-06 3.96549e-06 1.88108e-06" />
                                                 <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="inner_knuckle_coarse" />
@@ -237,7 +237,7 @@ Control Engineering / Automation Engineering
             <joint armature="0" damping="0" name="box_1_rot" pos="0 0 0" stiffness="0" type="ball"/>
             <geom name="box_1" pos="0 0 0" material="tablecube" size="0.02 0.02 0.02" type="box"/>
         </body>
-
+<!--
         <body name="box_2" pos=".0 -.6 1.1">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="box_2_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide" />
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_2_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide" />
@@ -277,7 +277,7 @@ Control Engineering / Automation Engineering
             <joint armature="0" damping="0.001" name="ball_3_rot" pos="0 0 0" stiffness="0" type="ball"/>
             <geom name="ball_3" pos="0 0 0" rgba="0.2 0.2 0.5 1" size=".02" type="sphere"/>
         </body>
-
+-->
 <!--         <body name="cylinder_1" pos=".15 -.55 1.3">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="cylinder_1_x" pos="0 0 0" range="-5. 5." ref=".1" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="cylinder_1_y" pos="0 0 0" range="-5. 5." ref="-.1" stiffness="0" type="slide"/>
@@ -374,7 +374,7 @@ Control Engineering / Automation Engineering
         <!-- <motor name='middle_finger_T'  ctrllimited="true" joint='gripperfinger_middle_joint_1' ctrlrange='-0.5 .8' gear="20"/> -->
         <!-- <motor name='finger_scissor_T' ctrllimited="true" joint='gripperpalm_finger_1_joint' ctrlrange="-0.8 0.8" gear="15"/>    -->
 
-     <!--    
+     <!--
         <motor name='finger_1_T' ctrllimited="true" joint='gripperfinger_1_joint_1' ctrlrange='-0.1 .8' gear="20"/>
         <motor name='finger_2_T' ctrllimited="true" joint='gripperfinger_2_joint_1' ctrlrange='-0.1 .8' gear="20"/>
         <motor name='middle_finger_T'  ctrllimited="true" joint='gripperfinger_middle_joint_1' ctrlrange='-0.1 .8' gear="20"/>
