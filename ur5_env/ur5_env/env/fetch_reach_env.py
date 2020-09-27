@@ -51,10 +51,75 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             self.current_observation = self.get_observation(show=self.show_observations)
 
+            #TODO make reward
+            reward = 0
+
         return self.current_observation, reward, done, info
 
-    def reset():
-        return 0, 0, 0, 0
+    def reset(self, show_obs=True):
+        """
+        Method to perform additional reset steps and return an observation.
+        Gets called in the parent classes reset method.
+        """
+
+        qpos = self.data.qpos
+        qvel = self.data.qvel
+
+        qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+
+        n_objects = 40
+
+        for i in range(n_objects):
+            joint_name = f'free_joint_{i}'
+            q_adr = self.model.get_joint_qpos_addr(joint_name)
+            start, end = q_adr
+            qpos[start] = np.random.uniform(low=-0.25, high=0.25)
+            qpos[start+1] = np.random.uniform(low=-0.77, high=-0.43)
+            # qpos[start+2] = 1.0
+            qpos[start+2] = np.random.uniform(low=1.0, high=1.5)
+            qpos[start+3:end] = Quaternion.random().unit.elements
+
+
+        # n_boxes = 3
+        # n_balls = 3
+
+        # for j in ['rot', 'x', 'y', 'z']:
+        #     for i in range(1,n_boxes+1):
+        #         joint_name = 'box_' + str(i) + '_' + j
+        #         q_adr = self.model.get_joint_qpos_addr(joint_name)
+        #         if j == 'x':
+        #             qpos[q_adr] = np.random.uniform(low=-0.25, high=0.25)
+        #         elif j == 'y':
+        #             qpos[q_adr] = np.random.uniform(low=-0.17, high=0.17)
+        #         elif j == 'z':
+        #             qpos[q_adr] = 0.0
+        #         elif j == 'rot':
+        #             start, end = q_adr
+        #             qpos[start:end] = [1., 0., 0., 0.]
+
+        #     for i in range(1,n_balls+1):
+        #         joint_name = 'ball_' + str(i) + '_' + j
+        #         q_adr = self.model.get_joint_qpos_addr(joint_name)
+        #         if j == 'x':
+        #             qpos[q_adr] = np.random.uniform(low=-0.25, high=0.25)
+        #         elif j == 'y':
+        #             qpos[q_adr] = np.random.uniform(low=-0.17, high=0.17)
+        #         elif j == 'z':
+        #             qpos[q_adr] = 0.0
+        #         elif j == 'rot':
+        #             start, end = q_adr
+        #             qpos[start:end] = [1., 0., 0., 0.]
+
+        self.set_state(qpos, qvel)
+
+        self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
+
+        # Turn this on for training, so the objects drop down before the observation
+        self.controller.stay(1000, render=self.render)
+        if self.demo_mode:
+            self.controller.stay(2000, render=self.render)
+        # return an observation image
+        return self.get_observation(show=self.show_observations)
 
     #def do_render(self):
     #    self.viewer.render()
