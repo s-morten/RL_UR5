@@ -69,15 +69,15 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         n_objects = 40
 
-        for i in range(n_objects):
-            joint_name = f'free_joint_{i}'
-            q_adr = self.model.get_joint_qpos_addr(joint_name)
-            start, end = q_adr
-            qpos[start] = np.random.uniform(low=-0.25, high=0.25)
-            qpos[start+1] = np.random.uniform(low=-0.77, high=-0.43)
-            # qpos[start+2] = 1.0
-            qpos[start+2] = np.random.uniform(low=1.0, high=1.5)
-            qpos[start+3:end] = Quaternion.random().unit.elements
+        # for i in range(n_objects):
+        #     joint_name = f'free_joint_{i}'
+        #     q_adr = self.model.get_joint_qpos_addr(joint_name)
+        #     start, end = q_adr
+        #     qpos[start] = np.random.uniform(low=-0.25, high=0.25)
+        #     qpos[start+1] = np.random.uniform(low=-0.77, high=-0.43)
+        #     # qpos[start+2] = 1.0
+        #     qpos[start+2] = np.random.uniform(low=1.0, high=1.5)
+        #     qpos[start+3:end] = Quaternion.random().unit.elements
 
 
         # n_boxes = 3
