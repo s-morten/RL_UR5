@@ -50,7 +50,7 @@ class MJ_Controller(object):
         self.reached_target = False
         self.current_output = np.zeros(len(self.sim.data.ctrl))
         self.image_counter = 0
-        self.ee_chain = ikpy.chain.Chain.from_urdf_file(path + '/ur5_env/env/ur5_gripper.urdf')
+        self.ee_chain = ikpy.chain.Chain.from_urdf_file(path + '/ur5_env/env/xml/ur5_gripper.urdf')
         self.cam_matrix = None
         self.cam_init = False
         self.last_movement_steps = 0
