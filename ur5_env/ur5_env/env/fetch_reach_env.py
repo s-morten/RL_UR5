@@ -137,3 +137,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         observation['depth'] = depth
 
         return observation
+
+    def close(self):
+        mujoco_env.MujocoEnv.close(self)
+        cv.destroyAllWindows()
