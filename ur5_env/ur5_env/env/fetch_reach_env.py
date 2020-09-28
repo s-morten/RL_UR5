@@ -27,7 +27,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
-        self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,-3.14159]), np.array([+3.14159,0,+3.14159,+3.14159,+3.14159,+3.14159]), dtype=np.float32)
+        self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,-3.14159, 0.3]), np.array([+3.14159,0,+3.14159,+3.14159,+3.14159,+3.14159, 0.3]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
