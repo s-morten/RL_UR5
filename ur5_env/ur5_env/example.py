@@ -13,6 +13,7 @@ N_EPISODES = 100
 N_STEPS = 100
 
 # env.print_info()
+controller.show_model_info()
 
 for episode in range(1, N_EPISODES+1):
     obs = env.reset()
