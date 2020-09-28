@@ -24,10 +24,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.initialized = True
         self.show_observations = show_obs
         self.render=render
-        self.x = 0.00
 
     def _set_action_space(self):
-        self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
+        # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
+        self.action_space = spaces.Box( np.array([-2,-2,-2,-1,-1,-1]), np.array([+2,+2,+2,+1,+1,+1]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
@@ -54,9 +54,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             qpos = self.data.qpos
             qvel = self.data.qvel
 
-            qpos[self.controller.actuated_joint_ids] = [0, self.x, self.x, self.x, self.x, self.x, self.x]
-
-            self.x = self.x + 0.05
+            qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
 
             self.set_state(qpos, qvel)
 
