@@ -11,7 +11,7 @@ MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_fin
 
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=True, image_width=200, image_height=200, show_obs=True):
+    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=True):
         self.initialized = False
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
@@ -75,6 +75,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         qpos = self.data.qpos
         qvel = self.data.qvel
+
+        print(f'qpos = {qpos}, qvel = {qvel}')
 
         qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
 
