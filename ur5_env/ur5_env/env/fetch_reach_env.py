@@ -159,3 +159,13 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def close(self):
         mujoco_env.MujocoEnv.close(self)
         cv.destroyAllWindows()
+
+    def print_info(self):
+        print('Model timestep:', self.model.opt.timestep)
+        print('Set number of frames skipped: ', self.frame_skip)
+        print('dt = timestep * frame_skip: ', self.dt)
+        print('Frames per second = 1/dt: ', self.metadata['video.frames_per_second'])
+        print('Actionspace: ', self.action_space)
+        print('Observation space:', self.observation_space)
+
+        self.controller.show_model_info()
