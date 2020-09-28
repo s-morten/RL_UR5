@@ -25,7 +25,7 @@ for episode in range(1, N_EPISODES+1):
         # action = 20000 #discrete
         #observation, reward, done, _ = env.step(action, record_grasps=True)
         observation, reward, done, _ = env.step(action)
-        time.sleep(2500)
+        time.sleep(2.5)
         # observation, reward, done, _ = env.step(action, record_grasps=True, render=True)
 
 env.close()
