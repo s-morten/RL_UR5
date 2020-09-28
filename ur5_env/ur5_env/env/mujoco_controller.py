@@ -280,6 +280,7 @@ class MJ_Controller(object):
         try:
             assert len(target) == len(idx), 'Length of the target must match the number of actuated joints in the group.'
             self.current_target_joint_values[idx] = target
+            self.viewer.render()
 
         except Exception as e:
             print(e)
