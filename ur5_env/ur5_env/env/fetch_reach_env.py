@@ -54,7 +54,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             qpos = self.data.qpos
             qvel = self.data.qvel
 
-            qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+            qpos[self.controller.actuated_joint_ids] = [action[0], action[0], action[0], action[0], action[0], action[0], action[0]]
 
             self.set_state(qpos, qvel)
 
