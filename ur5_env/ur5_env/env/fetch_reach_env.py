@@ -24,6 +24,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.initialized = True
         self.show_observations = show_obs
         self.render=render
+        self.x = 0.00
 
     def _set_action_space(self):
         self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -40,15 +41,26 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             self.current_observation['depth'] = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT))
             reward = 0
         else:
-            x = action[0] % self.IMAGE_WIDTH
-            y = action[0] // self.IMAGE_WIDTH
-            rotation = action[1]
+            # x = action[0] % self.IMAGE_WIDTH
+            # y = action[0] // self.IMAGE_WIDTH
+            # rotation = action[1]
+            #
+            # depth = self.current_observation['depth'][y][x]
+            #
+            # coordinates = self.controller.pixel_2_world(pixel_x=x, pixel_y=y, depth=depth, height=self.IMAGE_HEIGHT, width=self.IMAGE_WIDTH)
+            #
+            # result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
 
-            depth = self.current_observation['depth'][y][x]
+            qpos = self.data.qpos
+            qvel = self.data.qvel
 
-            coordinates = self.controller.pixel_2_world(pixel_x=x, pixel_y=y, depth=depth, height=self.IMAGE_HEIGHT, width=self.IMAGE_WIDTH)
+            qpos[self.controller.actuated_joint_ids] = [self.x, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
 
-            result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
+            self.x = self.x + 0.01
+
+            self.set_state(qpos, qvel)
+
+            self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
 
             self.current_observation = self.get_observation(show=self.show_observations)
 
