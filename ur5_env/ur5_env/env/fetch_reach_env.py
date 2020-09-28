@@ -58,13 +58,13 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             print(f'qpos = {qpos}, qvel = {qvel}')
 
-            qpos[self.controller.actuated_joint_ids] = [action[0], action[0], action[0], action[0], action[0], action[0], action[0]]
+            qpos[self.controller.actuated_joint_ids] = [action[0], action[1], action[2], action[3], action[4], action[5], 0.3]
 
-            self.set_state(qpos, qvel)
+            # ?? self.set_state(qpos, qvel)
 
             self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
 
-            self.controller.move_group_to_joint_target(tolerance=0.05, max_steps=500, render=self.render, quiet=True)
+            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.05, max_steps=500, render=self.render, quiet=True)
 
             self.current_observation = self.get_observation(show=self.show_observations)
 

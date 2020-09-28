@@ -229,7 +229,7 @@ Control Engineering / Automation Engineering
                 <geom size="0.03 0.03 0.03" pos="0 0 0.03" type="box" material="tablecube"/>
                 <inertial pos="0 0 0.03" mass="0.5" diaginertia="0 0 0" />
         </body> -->
-
+<!--
         <body name="box_1" pos=".0 -.6 0.95">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="box_1_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_1_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide"/>
@@ -237,7 +237,7 @@ Control Engineering / Automation Engineering
             <joint armature="0" damping="0" name="box_1_rot" pos="0 0 0" stiffness="0" type="ball"/>
             <geom name="box_1" pos="0 0 0" material="tablecube" size="0.02 0.02 0.02" type="box"/>
         </body>
-<!--
+
         <body name="box_2" pos=".0 -.6 1.1">
             <joint armature="0" axis="1 0 0" damping="0" limited="true" name="box_2_x" pos="0 0 0" range="-5. 5." stiffness="0" type="slide" />
             <joint armature="0" axis="0 1 0" damping="0" limited="true" name="box_2_y" pos="0 0 0" range="-5. 5." stiffness="0" type="slide" />
