@@ -197,8 +197,9 @@ class MJ_Controller(object):
 
         try:
             assert group in self.groups.keys(), 'No group with name {} exists!'.format(group)
+            gripper = 'Gripper'
             if target is not None:
-                assert len(target) == len(self.groups[group]), 'Mismatching target dimensions for group {}!'.format(group)
+                assert len(target) == len(self.groups[group]), f'Mismatching target dimensions for group {group}! Length of group {group} is {len(self.groups[group])} and Length of Gripper is {len(self.groups[gripper])}'
             ids = self.groups[group]
             steps = 1
             result = ''
