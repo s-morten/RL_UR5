@@ -11,11 +11,12 @@ MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_fin
 
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=True, image_width=200, image_height=200, show_obs=True):
+    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=True):
         self.initialized = False
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
         self.rotations = {0: 0, 1: 30, 2: 60, 3: 90, 4: -30, 5: -60}
+        self.step_called = 0
         utils.EzPickle.__init__(self)
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
         if render:
@@ -53,6 +54,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #
             # result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
 
+            if self.step_called == 1:
+                self.current_observation = self.get_observation(show=False)
+
             qpos = self.data.qpos
             qvel = self.data.qvel
 
@@ -72,6 +76,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             #TODO make reward
             reward = 0
+            self.step_called += 1
 
         return self.current_observation, reward, done, info
 
