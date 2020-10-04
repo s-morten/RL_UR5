@@ -30,7 +30,7 @@ class MJ_Controller(object):
         path = os.path.realpath(__file__)
         path = str(Path(path).parent.parent.parent)
         if model==None:
-            self.model = mp.load_model_from_path(path + '/UR5+gripper/UR5gripper_2_finger.xml')
+            self.model = mp.load_model_from_path('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml')
         else:
             self.model = model
         if simulation==None:
@@ -50,7 +50,7 @@ class MJ_Controller(object):
         self.reached_target = False
         self.current_output = np.zeros(len(self.sim.data.ctrl))
         self.image_counter = 0
-        self.ee_chain = ikpy.chain.Chain.from_urdf_file(path + '/ur5_env/env/xml/ur5_gripper.urdf')
+        self.ee_chain = ikpy.chain.Chain.from_urdf_file('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/ur5_gripper.urdf')
         self.cam_matrix = None
         self.cam_init = False
         self.last_movement_steps = 0
@@ -181,7 +181,7 @@ class MJ_Controller(object):
             print('Could not actuate requested joint group.')
 
 
-    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=True, quiet=False):
+    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=False, quiet=False):
         """
         Moves the specified joint group to a joint target.
         Args:
@@ -281,7 +281,7 @@ class MJ_Controller(object):
         try:
             assert len(target) == len(idx), 'Length of the target must match the number of actuated joints in the group.'
             self.current_target_joint_values[idx] = target
-            self.viewer.render()
+            # self.viewer.render()
 
         except Exception as e:
             print(e)
@@ -477,7 +477,7 @@ class MJ_Controller(object):
         self.move_group_to_joint_target()
 
 
-    def stay(self, duration, render=True):
+    def stay(self, duration, render=False):
         """
         Holds the current position by actuating the joints towards their current target position.
         Args:

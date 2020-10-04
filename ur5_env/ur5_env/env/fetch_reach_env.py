@@ -11,7 +11,7 @@ MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_fin
 
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=True):
+    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=False):
         self.initialized = False
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
@@ -21,7 +21,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
         if render:
             self.render()
-        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        #self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
         self.render=render
@@ -80,7 +81,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         return self.current_observation, reward, done, info
 
-    def reset(self, show_obs=True):
+    def reset(self, show_obs=False):
         """
         Method to perform additional reset steps and return an observation.
         Gets called in the parent classes reset method.
@@ -148,7 +149,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # return an observation image
         return self.get_observation(show=self.show_observations)
 
-    def get_observation(self, show=True):
+    def get_observation(self, show=False):
         """
         Uses the controllers get_image_data method to return an top-down image (as a np-array).
         Args:
