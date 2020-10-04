@@ -11,7 +11,7 @@ MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_fin
 
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=False):
+    def __init__(self, reward_type='sparse', render=False, image_width=200, image_height=200, show_obs=True, demo=False):
         self.initialized = False
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
@@ -21,11 +21,15 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
         if render:
             self.render()
+
+        print(f'{self.model} + {self.sim} + {self.viwer}')
         #self.controller = MJ_Controller(self.model, self.sim, self.viewer)
         self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
+        self.demo_mode = demo
         self.render=render
+        self.controller.create_camera_data(self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 'top_down')
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -56,7 +60,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             # result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
 
             if self.step_called == 1:
-                self.current_observation = self.get_observation(show=False)
+                self.current_observation = self.get_observation(show=self.show_observations)
 
             qpos = self.data.qpos
             qvel = self.data.qvel
@@ -71,7 +75,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             joint_angles = action
 
-            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.05, max_steps=500, render=self.render, quiet=True)
+            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.1, max_steps=10000, render=self.render, quiet=True)
 
             self.current_observation = self.get_observation(show=self.show_observations)
 
@@ -81,7 +85,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         return self.current_observation, reward, done, info
 
-    def reset(self, show_obs=False):
+    def reset(self, show_obs=True):
         """
         Method to perform additional reset steps and return an observation.
         Gets called in the parent classes reset method.
@@ -149,7 +153,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # return an observation image
         return self.get_observation(show=self.show_observations)
 
-    def get_observation(self, show=False):
+    def get_observation(self, show=True):
         """
         Uses the controllers get_image_data method to return an top-down image (as a np-array).
         Args:
