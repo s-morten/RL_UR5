@@ -261,7 +261,9 @@ class MJ_Controller(object):
 
                 self.sim.step()
                 if render:
-                    self.viewer.render()
+                    a, b = self.viewer.render()
+                    print(a)
+                    print(b)
                 steps += 1
 
             self.last_movement_steps = steps
