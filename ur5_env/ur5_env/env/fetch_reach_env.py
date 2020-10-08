@@ -28,6 +28,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.show_observations = show_obs
         self.demo_mode = demo
         self.render=render
+        self._set_action_space()
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -64,11 +65,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
 
-            joint_angles = action
+            #self.controller.set_group_joint_target(group='Arm', target=joint_angles)
 
-            self.controller.set_group_joint_target(group='Arm', target=joint_angles)
-
-            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.1, max_steps=10000, render=self.render, quiet=False)
+            self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False)
 
             self.current_observation = self.get_observation(show=self.show_observations)
 
@@ -84,19 +83,20 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         Gets called in the parent classes reset method.
         """
 
-        qpos = self.data.qpos
-        qvel = self.data.qvel
+        # qpos = self.data.qpos
+        # qvel = self.data.qvel
 
-        qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        #qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        #n_objects = 40
 
-        n_objects = 40
+        #self.set_state(qpos, qvel)
 
-        self.set_state(qpos, qvel)
-
-        self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
+        #self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
+        self.controller.move_group_to_joint_target(group='All', target=action)
 
         # Turn this on for training, so the objects drop down before the observation
-        self.controller.stay(1000, render=self.render)
+        #self.controller.stay(1000, render=self.render)
         #if self.demo_mode:
         #    self.controller.stay(2000, render=self.render)
 
@@ -110,12 +110,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             show: If True, displays the observation in a cv2 window.
         """
 
-        rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show)
-        depth = self.controller.depth_2_meters(depth)
-        observation = defaultdict()
-        observation['rgb'] = rgb
-        observation['depth'] = depth
-
+        # rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show)
+        # depth = self.controller.depth_2_meters(depth)
+        # observation = defaultdict()
+        # observation['rgb'] = rgb
+        # observation['depth'] = depth
+        observation = 0
         return observation
 
     def close(self):
@@ -123,11 +123,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         cv.destroyAllWindows()
 
     def print_info(self):
-        print('Model timestep:', self.model.opt.timestep)
-        print('Set number of frames skipped: ', self.frame_skip)
-        print('dt = timestep * frame_skip: ', self.dt)
-        print('Frames per second = 1/dt: ', self.metadata['video.frames_per_second'])
-        print('Actionspace: ', self.action_space)
-        print('Observation space:', self.observation_space)
+        # print('Model timestep:', self.model.opt.timestep)
+        # print('Set number of frames skipped: ', self.frame_skip)
+        # print('dt = timestep * frame_skip: ', self.dt)
+        # print('Frames per second = 1/dt: ', self.metadata['video.frames_per_second'])
+        # print('Actionspace: ', self.action_space)
+        # print('Observation space:', self.observation_space)
 
         self.controller.show_model_info()
