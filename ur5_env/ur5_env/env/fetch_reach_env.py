@@ -22,9 +22,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         if render:
             self.render()
 
-        print(f'{self.model} + {self.sim} + {self.viwer}')
-        #self.controller = MJ_Controller(self.model, self.sim, self.viewer)
-        self.controller = MJ_Controller()
+        print(f'{self.model} + {self.sim} + {self.viewer}')
+        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        #self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
         self.demo_mode = demo
@@ -75,13 +75,16 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             joint_angles = action
 
-            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.1, max_steps=10000, render=self.render, quiet=True)
+            self.controller.set_group_joint_target(group='Arm', target=joint_angles)
+
+            self.controller.move_group_to_joint_target(group='Arm', target=joint_angles, tolerance=0.1, max_steps=10000, render=self.render, quiet=False)
 
             self.current_observation = self.get_observation(show=self.show_observations)
 
             #TODO make reward
             reward = 0
-            self.step_called += 1
+        self.step_called += 1
+        print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{self.step_called}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+')
 
         return self.current_observation, reward, done, info
 

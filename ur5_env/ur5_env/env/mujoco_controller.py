@@ -38,8 +38,10 @@ class MJ_Controller(object):
         else:
             self.sim = simulation
         if viewer==None:
+            print('Viewer was None')
             self.viewer = mp.MjViewer(self.sim)
         else:
+            print('Viewer was not none')
             self.viewer = viewer
         self.create_lists()
         self.groups = defaultdict(list)
@@ -181,7 +183,7 @@ class MJ_Controller(object):
             print('Could not actuate requested joint group.')
 
 
-    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=False, quiet=False):
+    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=True, quiet=False):
         """
         Moves the specified joint group to a joint target.
         Args:
@@ -387,6 +389,7 @@ class MJ_Controller(object):
                 print('Failed to find IK solution.')
                 return None
             else:
+                print(joint_angles)
                 return joint_angles
 
         except Exception as e:
