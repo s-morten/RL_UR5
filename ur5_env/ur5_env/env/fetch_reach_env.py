@@ -17,19 +17,17 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.IMAGE_HEIGHT = image_height
         self.rotations = {0: 0, 1: 30, 2: 60, 3: 90, 4: -30, 5: -60}
         self.step_called = 0
-        utils.EzPickle.__init__(self)
-        mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
-        if render:
-            self.render()
+        # utils.EzPickle.__init__(self)
+        # mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
+        # if render:
+        #     self.render()
 
-        print(f'{self.model} + {self.sim} + {self.viewer}')
-        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
-        #self.controller = MJ_Controller()
+        #self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
         self.demo_mode = demo
         self.render=render
-        self.controller.create_camera_data(self.IMAGE_WIDTH, self.IMAGE_HEIGHT, 'top_down')
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -37,8 +35,6 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         return self.action_space
 
     def step(self, action, markers=False):
-
-        print(f'action = {action}')
         done = False
         info = {}
 
@@ -62,11 +58,6 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             if self.step_called == 1:
                 self.current_observation = self.get_observation(show=self.show_observations)
 
-            qpos = self.data.qpos
-            qvel = self.data.qvel
-
-            print(f'qpos = {qpos}, qvel = {qvel}')
-
             # qpos[self.controller.actuated_joint_ids] = [action[0], action[1], action[2], action[3], action[4], action[5], 0.3]
 
             # ?? self.set_state(qpos, qvel)
@@ -84,7 +75,6 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #TODO make reward
             reward = 0
         self.step_called += 1
-        print(f'~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{self.step_called}~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~+')
 
         return self.current_observation, reward, done, info
 
@@ -97,52 +87,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         qpos = self.data.qpos
         qvel = self.data.qvel
 
-        print(f'qpos = {qpos}, qvel = {qvel}')
-
         qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
 
         n_objects = 40
-
-        # for i in range(n_objects):
-        #     joint_name = f'free_joint_{i}'
-        #     q_adr = self.model.get_joint_qpos_addr(joint_name)
-        #     start, end = q_adr
-        #     qpos[start] = np.random.uniform(low=-0.25, high=0.25)
-        #     qpos[start+1] = np.random.uniform(low=-0.77, high=-0.43)
-        #     # qpos[start+2] = 1.0
-        #     qpos[start+2] = np.random.uniform(low=1.0, high=1.5)
-        #     qpos[start+3:end] = Quaternion.random().unit.elements
-
-
-        # n_boxes = 3
-        # n_balls = 3
-
-        # for j in ['rot', 'x', 'y', 'z']:
-        #     for i in range(1,n_boxes+1):
-        #         joint_name = 'box_' + str(i) + '_' + j
-        #         q_adr = self.model.get_joint_qpos_addr(joint_name)
-        #         if j == 'x':
-        #             qpos[q_adr] = np.random.uniform(low=-0.25, high=0.25)
-        #         elif j == 'y':
-        #             qpos[q_adr] = np.random.uniform(low=-0.17, high=0.17)
-        #         elif j == 'z':
-        #             qpos[q_adr] = 0.0
-        #         elif j == 'rot':
-        #             start, end = q_adr
-        #             qpos[start:end] = [1., 0., 0., 0.]
-
-        #     for i in range(1,n_balls+1):
-        #         joint_name = 'ball_' + str(i) + '_' + j
-        #         q_adr = self.model.get_joint_qpos_addr(joint_name)
-        #         if j == 'x':
-        #             qpos[q_adr] = np.random.uniform(low=-0.25, high=0.25)
-        #         elif j == 'y':
-        #             qpos[q_adr] = np.random.uniform(low=-0.17, high=0.17)
-        #         elif j == 'z':
-        #             qpos[q_adr] = 0.0
-        #         elif j == 'rot':
-        #             start, end = q_adr
-        #             qpos[start:end] = [1., 0., 0., 0.]
 
         self.set_state(qpos, qvel)
 

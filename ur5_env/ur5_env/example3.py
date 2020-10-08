@@ -1,6 +1,6 @@
 from ur5_env.env.mujoco_controller import MJ_Controller
 import random
-
+import numpy as np
 
 def get_action():
     low = np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159], dtype=np.float32)
@@ -21,7 +21,7 @@ controller = MJ_Controller()
 controller.show_model_info()
 
 for s in range(STEPS):
-    actiuon = get_action()
+    action = get_action()
     # Move ee to position above the object, plot the trajectory to an image file, show a marker at the target location
     controller.move_group_to_joint_target(group='Arm', target=action, max_steps=1000, quiet=True, render=True, marker=False, tolerance=0.05, plot=False)
 
