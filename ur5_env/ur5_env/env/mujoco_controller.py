@@ -554,7 +554,8 @@ class MJ_Controller(object):
             camera: String specifying the name of the camera to use.
         """
 
-        rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
+        data = np.asarray(viewer.read_pixels(width, height, depth=False)[::-1, :, :], dtype=np.uint8)
+        # rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
         # rgb, depth = copy.deepcopy(self.sim2.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
         if show:
             cv.imshow('rbg', cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
@@ -563,7 +564,9 @@ class MJ_Controller(object):
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
-        return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
+        print(data)
+        # return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
+        return 0
 
 
     def depth_2_meters(self, depth):
