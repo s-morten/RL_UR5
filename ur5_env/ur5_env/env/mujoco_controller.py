@@ -261,9 +261,7 @@ class MJ_Controller(object):
 
                 self.sim.step()
                 if render:
-                    a, b = self.viewer.render()
-                    print(a)
-                    print(b)
+                    self.viewer.render()
                 steps += 1
 
             self.last_movement_steps = steps
@@ -556,7 +554,8 @@ class MJ_Controller(object):
             camera: String specifying the name of the camera to use.
         """
 
-        rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True))
+        rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
+        # rgb, depth = copy.deepcopy(self.sim2.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
         if show:
             cv.imshow('rbg', cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
             # cv.imshow('depth', depth)

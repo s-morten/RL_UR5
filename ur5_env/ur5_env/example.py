@@ -6,7 +6,7 @@ from setuptools import setup
 import gym
 import ur5_env
 
-SHOW_OBS = True
+SHOW_OBS = False
 RENDER = True
 
 # env = gym.make('ur5-v0', show_obs=False, render=True)

@@ -17,13 +17,13 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.IMAGE_HEIGHT = image_height
         self.rotations = {0: 0, 1: 30, 2: 60, 3: 90, 4: -30, 5: -60}
         self.step_called = 0
-        # utils.EzPickle.__init__(self)
-        # mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
+        utils.EzPickle.__init__(self)
+        mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
         # if render:
         #     self.render()
 
-        #self.controller = MJ_Controller(self.model, self.sim, self.viewer)
-        self.controller = MJ_Controller()
+        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        #self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
         self.demo_mode = demo
@@ -69,7 +69,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False)
 
-            self.current_observation = self.get_observation(show=self.show_observations)
+            # self.current_observation = self.get_observation(show=self.show_observations)
+
+            self.current_observation = 0
 
             #TODO make reward
             reward = 0
@@ -101,21 +103,22 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #    self.controller.stay(2000, render=self.render)
 
         # return an observation image
-        return self.get_observation(show=self.show_observations)
+        #return self.get_observation(show=self.show_observations)
+        return 0
 
-    def get_observation(self, show=True):
+    def get_observation(self, show=False):
         """
         Uses the controllers get_image_data method to return an top-down image (as a np-array).
         Args:
             show: If True, displays the observation in a cv2 window.
         """
 
-        # rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show)
-        # depth = self.controller.depth_2_meters(depth)
-        # observation = defaultdict()
-        # observation['rgb'] = rgb
-        # observation['depth'] = depth
-        observation = 0
+        rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show)
+        depth = self.controller.depth_2_meters(depth)
+        observation = defaultdict()
+        observation['rgb'] = rgb
+        observation['depth'] = depth
+
         return observation
 
     def close(self):
