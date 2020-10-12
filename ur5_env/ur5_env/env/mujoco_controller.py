@@ -56,6 +56,7 @@ class MJ_Controller(object):
         self.cam_matrix = None
         self.cam_init = False
         self.last_movement_steps = 0
+        self.current_goal = [0.0, -0.6, 1.0]
         # self.move_group_to_joint_target()
 
 
@@ -241,9 +242,11 @@ class MJ_Controller(object):
 
                 temp = self.sim.data.body_xpos[self.model.body_name2id('ee_link')] - [0, -0.005, 0.16]
 
+                # if marker:
+                #     self.add_marker(self.current_carthesian_target)
+                #     self.add_marker(temp)
                 if marker:
-                    self.add_marker(self.current_carthesian_target)
-                    self.add_marker(temp)
+                    self.add_marker(self.current_goal)
 
                 if max(deltas) < tolerance:
                     if target is not None and not quiet:
@@ -554,9 +557,8 @@ class MJ_Controller(object):
             camera: String specifying the name of the camera to use.
         """
 
-        data = np.asarray(viewer.read_pixels(width, height, depth=False)[::-1, :, :], dtype=np.uint8)
-        # rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
-        # rgb, depth = copy.deepcopy(self.sim2.render(width=width, height=height, camera_name=camera, depth=True, mode='offscreen'))
+        rgb, depth = self.viewer.read_pixels(width, height, depth=True)
+
         if show:
             cv.imshow('rbg', cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
             # cv.imshow('depth', depth)
@@ -564,9 +566,7 @@ class MJ_Controller(object):
             # cv.waitKey(delay=5000)
             # cv.destroyAllWindows()
 
-        print(data)
-        # return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
-        return 0
+        return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
 
     def depth_2_meters(self, depth):
@@ -648,7 +648,7 @@ class MJ_Controller(object):
 
         return pos_w
 
-    def add_marker(self, coordinates, label=True, size=[0.015, 0.015, 0.015], color=[1,0,0]):
+    def add_marker(self, coordinates, label=True, size=[0.05, 0.05, 0.05], color=[1,0,0]):
         """
         Adds a circular red marker at the coordinates, dislaying the coordinates as a label.
         Args:

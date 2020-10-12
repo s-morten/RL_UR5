@@ -67,11 +67,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             #self.controller.set_group_joint_target(group='Arm', target=joint_angles)
 
-            self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False)
+            # self.controller.add_marker(coordinates=, label=True)
+            self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False, marker=True)
 
             # self.current_observation = self.get_observation(show=self.show_observations)
 
-            self.current_observation = 0
+            self.current_observation = self.get_observation()
 
             #TODO make reward
             reward = 0
@@ -103,8 +104,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #    self.controller.stay(2000, render=self.render)
 
         # return an observation image
-        #return self.get_observation(show=self.show_observations)
-        return 0
+        return self.get_observation(show=self.show_observations)
 
     def get_observation(self, show=False):
         """
