@@ -16,6 +16,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 import copy
 from decorators import debug
+import random
 
 
 class MJ_Controller(object):
@@ -59,6 +60,11 @@ class MJ_Controller(object):
         self.current_goal = [0.0, -0.6, 1.0]
         # self.move_group_to_joint_target()
 
+    def get_new_goal(self):
+        goal = np.zeros(3)
+        for x in range(3):
+            goal[x] = random.uniform(-1.0, 1.0)
+        self.current_goal=goal
 
     def create_group(self, group_name, idx_list):
         """
@@ -648,7 +654,7 @@ class MJ_Controller(object):
 
         return pos_w
 
-    def add_marker(self, coordinates, label=True, size=[0.05, 0.05, 0.05], color=[1,0,0]):
+    def add_marker(self, coordinates, label=True, size=[0.013, 0.013, 0.013], color=[1,0,0]):
         """
         Adds a circular red marker at the coordinates, dislaying the coordinates as a label.
         Args:
