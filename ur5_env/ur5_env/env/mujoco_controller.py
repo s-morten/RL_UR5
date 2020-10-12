@@ -58,12 +58,14 @@ class MJ_Controller(object):
         self.cam_init = False
         self.last_movement_steps = 0
         self.current_goal = [0.0, -0.6, 1.0]
+        self.goal_low = [-0.5, -0.8, 0.65]
+        self.goal_high = [0.5, -0.3, 1.4]
         # self.move_group_to_joint_target()
 
     def get_new_goal(self):
         goal = np.zeros(3)
         for x in range(3):
-            goal[x] = random.uniform(-1.0, 1.0)
+            goal[x] = random.uniform(self.goal_low[x], self.goal_high[x])
         self.current_goal=goal
 
     def create_group(self, group_name, idx_list):
@@ -253,6 +255,17 @@ class MJ_Controller(object):
                 #     self.add_marker(temp)
                 if marker:
                     self.add_marker(self.current_goal)
+                    # self.add_marker([0.5, -0.3, 0.65])
+                    # self.add_marker([-0.5, -0.3, 0.65])
+                    #
+                    # self.add_marker([0.5, -0.8, 0.65])
+                    # self.add_marker([-0.5, -0.8, 0.65])
+                    #
+                    # self.add_marker([0.5, -0.3, 1.4])
+                    # self.add_marker([-0.5, -0.3, 1.4])
+                    #
+                    # self.add_marker([0.5, -0.8, 1.4])
+                    # self.add_marker([-0.5, -0.8, 1.4])
 
                 if max(deltas) < tolerance:
                     if target is not None and not quiet:
