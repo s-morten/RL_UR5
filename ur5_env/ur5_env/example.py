@@ -7,13 +7,13 @@ import gym
 import ur5_env
 
 SHOW_OBS = False
-RENDER = True
+RENDER = False
 
 # env = gym.make('ur5-v0', show_obs=False, render=True)
 env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS)
 
-N_EPISODES = 100
-N_STEPS = 100
+N_EPISODES = 1
+N_STEPS = 10
 
 env.print_info()
 
@@ -24,6 +24,11 @@ for episode in range(1, N_EPISODES+1):
         print(colored('EPISODE {} STEP {}'.format(episode, step+1), color='white', attrs=['bold']))
         #env.controller.display_current_values()
         print('#################################################################')
+        # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        # action = [0, -3.14, 1.57, -1.57, -1.57, 0.0, 0.3]
+        # All
+        # -3.14 / 0
+        #
         action = env.action_space.sample()
         print(action)
         # action = [100,100] # multidiscrete
@@ -31,7 +36,8 @@ for episode in range(1, N_EPISODES+1):
         #observation, reward, done, _ = env.step(action, record_grasps=True)
         observation, reward, done, _ = env.step(action)
         # observation, reward, done, _ = env.step(action, record_grasps=True, render=True)
-
+        # obs = env.reset(show_obs=SHOW_OBS)
+env.plot_actions()
 env.close()
 
 print('Finished.')

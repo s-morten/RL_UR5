@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # Author: Paul Daniel (pdd@mp.aau.dk)
-
 from collections import defaultdict
 import os
 from pathlib import Path
@@ -57,15 +56,43 @@ class MJ_Controller(object):
         self.cam_matrix = None
         self.cam_init = False
         self.last_movement_steps = 0
-        self.current_goal = [0.0, -0.6, 1.0]
-        self.goal_low = [-0.5, -0.8, 0.65]
-        self.goal_high = [0.5, -0.3, 1.4]
+        self.current_goal = [0, 0, 0]
+        self.goal_low = [0.275, 0.1, -0.3]
+        self.goal_high = [-0.26, -0.33, -0.3]
+        # self.goal_goal_low = [-0.23, -0.3, 0.5]
+        # self.goal_goal_high = [0.23, 0.3, 0.5]
+        # self.goal_goal_low = [0.48, 1.12, 1.13]
+        # self.goal_goal_high = [0.48, 1.12, 1.13]
+        # self.goal_goal_low = [0.4877, 0.71, 0.85]
+        # self.goal_goal_high = [0.4877, 0.71, 0.85]
+        # self.goal_goal_low = [0.48691776, 0.12197666, 1.22697751]
+        # self.goal_goal_high = [0.48691776, 0.12197666, 1.22697751]
+        self.goal_goal_low = [0.4877, 0.71, 0.85]
+        self.goal_goal_high = [0.4877, 0.71, 0.85]
         # self.move_group_to_joint_target()
 
-    def get_new_goal(self):
+    def set_goal_range(self, input):
+        self.goal_goal_low = input
+        self.goal_goal_high = input
+
+    def set_new_goal(self, qpos):
+        # qpos = self.data.qpos
         goal = np.zeros(3)
-        for x in range(3):
-            goal[x] = random.uniform(self.goal_low[x], self.goal_high[x])
+        for j in ['rot', 'x', 'y', 'z']:
+            joint_name = 'ball_1_' + j
+            qadr = self.model.get_joint_qpos_addr(joint_name)
+            if j == 'x':
+                qpos[qadr] = random.uniform(self.goal_low[0], self.goal_high[0])
+                goal[0] = qpos[qadr]
+            elif j == 'y':
+                qpos[qadr] = random.uniform(self.goal_low[1], self.goal_high[1])
+                goal[1] = qpos[qadr]
+            elif j == 'z':
+                qpos[qadr] = random.uniform(self.goal_low[2], self.goal_high[2])
+                goal[2] = qpos[qadr]
+            elif j == 'rot':
+                start, end = qadr
+                qpos[start:end] = [1., 0., 0., 0.]
         self.current_goal=goal
 
     def create_group(self, group_name, idx_list):
@@ -192,7 +219,7 @@ class MJ_Controller(object):
             print('Could not actuate requested joint group.')
 
 
-    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=True, quiet=False):
+    def move_group_to_joint_target(self, group='All', target=None, tolerance=0.1, max_steps=10000, plot=False, marker=False, render=False, quiet=False):
         """
         Moves the specified joint group to a joint target.
         Args:
@@ -395,6 +422,7 @@ class MJ_Controller(object):
             # for the grasp center instead of the ee_link
             gripper_center_position = ee_position_base + [0, -0.005, 0.16]
             # gripper_center_position = ee_position_base + [0, 0, 0.185]
+            # gcp = ee_p - base_link + [... 0.16]
 
             # initial_position=[0, *self.sim.data.qpos[self.actuated_joint_ids][self.groups['Arm']], 0]
             # joint_angles = self.ee_chain.inverse_kinematics(gripper_center_position, [0,0,-1], orientation_mode='X', initial_position=initial_position, regularization_parameter=0.05)
@@ -568,7 +596,7 @@ class MJ_Controller(object):
         plt.clf()
 
 
-    def get_image_data(self, show=False, camera='top_down', width=200, height=200):
+    def get_image_data(self, show=False, camera='behind', width=200, height=200, render=False):
         """
         Returns the RGB and depth images of the provided camera.
         Args:
@@ -576,7 +604,10 @@ class MJ_Controller(object):
             camera: String specifying the name of the camera to use.
         """
 
-        rgb, depth = self.viewer.read_pixels(width, height, depth=True)
+        if render:
+            rgb, depth = self.viewer.read_pixels(width, height, depth=True)
+        else:
+            rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True))
 
         if show:
             cv.imshow('rbg', cv.cvtColor(rgb, cv.COLOR_BGR2RGB))

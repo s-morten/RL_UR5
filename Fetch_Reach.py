@@ -6,18 +6,19 @@ import mujoco_py
 import tensorflow as tf
 import tensorflow.contrib as tc
 from collections import deque
-env = gym.make('FetchReach-v1')
-action_size = 4
-state_size = 13
+import ur5_env
+env = gym.make('ur5-v0', render=False, show_obs=False)
+action_size = 5
+state_size = 200*200*3+3
 action_bound = env.action_space.high
 batch_size = 128
 import random
 import matplotlib.pyplot as plt
 ###################seeding###################
-seeding = 1234
-np.random.seed(seeding)
-tf.set_random_seed(seeding)
-env.seed(seeding)
+# seeding = 1234
+# np.random.seed(seeding)
+# tf.set_random_seed(seeding)
+# env.seed(seeding)
 ######################################
 
 class actor():
@@ -183,10 +184,10 @@ class OrnsteinUhlenbeckActionNoise:
 
 
 def store_sample(s,a,r,d,info ,s2):
-    ob_1 = np.reshape(s['observation'],(1,10))
+    ob_1 = np.reshape(s['observation'],(1,120000))
     ac_1 = np.reshape(s['achieved_goal'],(1,3))
     de_1 = np.reshape(s['desired_goal'],(1,3))
-    ob_2 = np.reshape(s2['observation'],(1,10))
+    ob_2 = np.reshape(s2['observation'],(1,120000))
     ac_2 = np.reshape(s2['achieved_goal'],(1,3))
     de_2 = np.reshape(s2['desired_goal'],(1,3))
     s_1 = np.concatenate([ob_1,ac_1],axis=1)
@@ -201,7 +202,7 @@ def store_sample(s,a,r,d,info ,s2):
 
 def stg(s):
     #print(len(s))
-    ob_1 = np.reshape(s['observation'],(1,10))
+    ob_1 = np.reshape(s['observation'],(1,120000))
     de_1 = np.reshape(s['desired_goal'],(1,3))
     return np.concatenate([ob_1,de_1],axis=1)
 
@@ -216,10 +217,10 @@ sess.run(tf.global_variables_initializer())
 #save_path = 'DDPG.ckpt'
 saver = tf.train.Saver()
 #saver = tf.train.Saver()
-saver.restore(sess, "model/kk")
+#saver.restore(sess, "model/kk")
 replay_memory = deque(maxlen = 100000)
 max_ep = 50000
-max_ep_len = 200
+max_ep_len = 5000
 gamma = 0.99
 R_graph = deque(maxlen = 10)
 R_graph_= []
@@ -239,7 +240,7 @@ for ii in range(max_ep):
         a += noice()
         #print(a)
         a=a[0]
-        env.render()
+        #env.render()
         s2,r,d,info=env.step(a)
         #print(s2)
         #s2=s2[np.newaxis, :]

@@ -1,30 +1,28 @@
-from ur5_env.env.mujoco_controller import MJ_Controller
-import random
+import gym
+import ur5_env
 import numpy as np
 
-def get_action():
-    low = np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159], dtype=np.float32)
-    high = np.array([+3.14159,0,+3.14159,+3.14159,+3.14159], dtype=np.float32)
-    action = np.zeros(5, dtype=np.float32)
+from stable_baselines.ddpg.policies import MlpPolicy
+from stable_baselines.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise, AdaptiveParamNoiseSpec
+from stable_baselines import DDPG
 
-    for i in range(len(low)):
-        action[i] = random.uniform(low[i], high[i])
+SHOW_OBS = False
+RENDER = False
 
-    return action
+env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS)
+# the noise objects for DDPG
+n_actions = env.action_space.shape[-1]
+param_noise = None
+action_noise = OrnsteinUhlenbeckActionNoise(mean=np.zeros(n_actions), sigma=float(0.5) * np.ones(n_actions))
 
+model = DDPG(MlpPolicy, env, verbose=1, param_noise=param_noise, action_noise=action_noise)
+# model.learn(total_timesteps=400000)
+model.learn(10000)
 
-STEPS = 100
-# create controller instance
-controller = MJ_Controller()
+env.plot_actions()
 
-# Display robot information
-controller.show_model_info()
-
-for s in range(STEPS):
-    action = get_action()
-    # Move ee to position above the object, plot the trajectory to an image file, show a marker at the target location
-    controller.move_group_to_joint_target(group='Arm', target=action, max_steps=1000, quiet=True, render=True, marker=False, tolerance=0.05, plot=False)
-
-
-# Wait before finishing
-controller.stay(2000)
+obs = env.reset()
+while True:
+    action, _states = model.predict(obs)
+    obs, rewards, dones, info = env.step(action)
+    env.render()
