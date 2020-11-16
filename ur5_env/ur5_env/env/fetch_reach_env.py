@@ -1,14 +1,11 @@
-import os
 import numpy as np
+import opencv as cv
 import matplotlib.pyplot as plt
 from PIL import Image
-import math
 from gym import utils, spaces
 from gym.envs.mujoco import mujoco_env
 from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
-from skimage import color
-from skimage import transform
 
 # Ensure we get the path separator correct on windows
 MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
@@ -25,6 +22,7 @@ def goal_distance(goal_a, goal_b):
         else:
             sum -= tmp
     return sum
+
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, demo=False):
@@ -45,23 +43,27 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #     self.render()
 
         self.controller = MJ_Controller(self.model, self.sim, self.viewer)
-        #self.controller = MJ_Controller()
+        # self.controller = MJ_Controller()
         self.initialized = True
         self.show_observations = show_obs
         self.demo_mode = demo
-        self.render=render
+        self.render = render
         self.distance_threshold = 0.1
         self._max_episode_steps = 5000
-        self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,0.3]), np.array([+3.14159,+3.14159,+3.14159,+3.14159,+3.14159,+3.14159,0.3]), dtype=np.float32)
-        # self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,0.3]), np.array([+3.14159,0,+3.14159,+3.14159,+3.14159,+3.14159,0.3]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
+                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
+        #                                np.array([+3.14159,0,+3.14159,+3.14159,+3.14159,+3.14159,0.3]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
-        self.action = [0,0,0,0,0,0,0]
+        self.action = [0, 0, 0, 0, 0, 0, 0]
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
-        self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,-3.14159,0.3]), np.array([+3.14159,+3.14159,+3.14159,+3.14159,+3.14159,+3.14159,0.3]), dtype=np.float32)
-        # self.action_space = spaces.Box( np.array([-3.14159,-3.14159,-3.14159,-3.14159,-3.14159]), np.array([+3.14159,0,+3.14159,+3.14159,+3.14159]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
+                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
+        #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
@@ -111,7 +113,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
 
-            #self.controller.set_group_joint_target(group='Arm', target=joint_angles)
+            # self.controller.set_group_joint_target(group='Arm', target=joint_angles)
             self.controller.set_new_goal(self.data.qpos)
 
             # self.controller.add_marker(coordinates=, label=True)
@@ -145,7 +147,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"reward: {reward}")
             print("######################################################################################################")
-            self.reset()
+            #  #  #  # self.reset() #  #  #  #
         self.step_called += 1
         # print(self.current_observation, reward, done, info)
         return self.current_observation, reward, done, info
@@ -159,19 +161,19 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # qpos = self.data.qpos
         # qvel = self.data.qvel
 
-        #qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        # qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        #n_objects = 40
+        # n_objects = 40
 
-        #self.set_state(qpos, qvel)
+        # self.set_state(qpos, qvel)
 
-        #self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
+        # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
         self.controller.move_group_to_joint_target(group='All', target=action)
 
         # Turn this on for training, so the objects drop down before the observation
-        #self.controller.stay(1000, render=self.render)
-        #if self.demo_mode:
+        # self.controller.stay(1000, render=self.render)
+        # if self.demo_mode:
         #    self.controller.stay(2000, render=self.render)
 
         # return an observation image
@@ -186,15 +188,15 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         argb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
         depth = self.controller.depth_2_meters(depth)
-        #observation = defaultdict()
+        # observation = defaultdict()
         # observation['rgb'] = rgb
         # observation['depth'] = depth
 
         # how to combine rgb and depth? is it working like this?
-        #obs = np.append(rgb, depth)
+        # obs = np.append(rgb, depth)
 
-        argb = argb[70:230,:,:]
-        argb = np.dot(argb[...,:3], [0.2989, 0.5870, 0.1140])
+        argb = argb[70:230, :, :]
+        argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
 
         img = Image.fromarray(argb)
         img.thumbnail((300, 80), Image.ANTIALIAS)
