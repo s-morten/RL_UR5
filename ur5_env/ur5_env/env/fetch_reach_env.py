@@ -1,5 +1,5 @@
 import numpy as np
-import opencv as cv
+import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 from gym import utils, spaces
@@ -39,8 +39,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.step_called = 0
         utils.EzPickle.__init__(self)
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
-        # if render:
-        #     self.render()
+        self.mode = 'her'
 
         self.controller = MJ_Controller(self.model, self.sim, self.viewer)
         # self.controller = MJ_Controller()
@@ -53,10 +52,24 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
                                        np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
         # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-        #                                np.array([+3.14159,0,+3.14159,+3.14159,+3.14159,+3.14159,0.3]), dtype=np.float32)
+        #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
+
+    def find_circle(self, image_array):
+        # get image
+        img = Image.fromarray(image_array)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1,20,param1=50,param2=30,minRadius=0,maxRadius=0)
+        if circles is not None:
+            # convert the (x, y) coordinates and radius of the circles to integers
+            circles = np.round(circles[0, :]).astype("int")
+            # loop over the (x, y) coordinates and radius of the circles
+            return circles[0][0], circles[0][1]
+        else:
+            return -1
+
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -195,13 +208,15 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # how to combine rgb and depth? is it working like this?
         # obs = np.append(rgb, depth)
 
-        argb = argb[70:230, :, :]
-        argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
+        coordinates = self.find_circle(argb)
 
-        img = Image.fromarray(argb)
-        img.thumbnail((300, 80), Image.ANTIALIAS)
-        argb = img.getdata()
-        argb = np.array(argb)
+        # argb = argb[70:230, :, :]
+        # argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
+        #
+        # img = Image.fromarray(argb)
+        # img.thumbnail((300, 80), Image.ANTIALIAS)
+        # argb = img.getdata()
+        # argb = np.array(argb)
         # print(argb.shape)
 
         # img = Image.fromarray(argb, 'RGB')
@@ -213,7 +228,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # img = Image.fromarray(argb)
         # img.show()
         observation = self.action
-        observation = np.append(observation, argb)
+        observation = np.append(observation, coordinates)
         # print(observation.shape)
         self.desired_goal = self.controller.current_goal
         self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 + [0, 0.6, -0.36]
