@@ -60,7 +60,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def find_circle(self, image_array):
         # get image
         img = Image.fromarray(image_array)
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
         circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1,20,param1=50,param2=30,minRadius=0,maxRadius=0)
         if circles is not None:
             # convert the (x, y) coordinates and radius of the circles to integers
@@ -102,7 +102,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             # self.current_observation['achieved_goal'] = np.ones(5)
 
             # self.current_observation = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT,3))
-            self.current_observation = np.zeros((24007))
+            # self.current_observation = np.zeros((24007))
+            self.current_observation = np.zeros((9))
             reward = 0
         else:
             # x = action[0] % self.IMAGE_WIDTH
@@ -209,6 +210,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # obs = np.append(rgb, depth)
 
         coordinates = self.find_circle(argb)
+        print(f"coordinates {coordinates}")
 
         # argb = argb[70:230, :, :]
         # argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
@@ -229,6 +231,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # img.show()
         observation = self.action
         observation = np.append(observation, coordinates)
+        print(observation)
         # print(observation.shape)
         self.desired_goal = self.controller.current_goal
         self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 + [0, 0.6, -0.36]
