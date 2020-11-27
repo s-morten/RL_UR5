@@ -14,7 +14,7 @@ from pyquaternion import Quaternion
 import cv2 as cv
 import matplotlib.pyplot as plt
 import copy
-from decorators import debug
+# from decorators import debug
 import random
 
 
@@ -30,7 +30,8 @@ class MJ_Controller(object):
         path = os.path.realpath(__file__)
         path = str(Path(path).parent.parent.parent)
         if model==None:
-            self.model = mp.load_model_from_path('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml')
+            # self.model = mp.load_model_from_path('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml')
+            self.model = mp.load_model_from_path('/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml')
         else:
             self.model = model
         if simulation==None:
@@ -52,7 +53,8 @@ class MJ_Controller(object):
         self.reached_target = False
         self.current_output = np.zeros(len(self.sim.data.ctrl))
         self.image_counter = 0
-        self.ee_chain = ikpy.chain.Chain.from_urdf_file('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/ur5_gripper.urdf')
+        # self.ee_chain = ikpy.chain.Chain.from_urdf_file('/home/morten/RL_husky/ur5_env/ur5_env/env/xml/ur5_gripper.urdf')
+        self.ee_chain = ikpy.chain.Chain.from_urdf_file('/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/ur5_gripper.urdf')
         self.cam_matrix = None
         self.cam_init = False
         self.last_movement_steps = 0

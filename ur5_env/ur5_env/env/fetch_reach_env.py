@@ -8,8 +8,8 @@ from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
 
 # Ensure we get the path separator correct on windows
-MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
-
+# MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
+MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 
 def goal_distance(goal_a, goal_b):
     assert goal_a.shape == goal_b.shape
@@ -48,46 +48,88 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.demo_mode = demo
         self.render = render
         self.distance_threshold = 0.1
-        self._max_episode_steps = 5000
-        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        self._max_episode_steps = 1000
         # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-        #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        #                                np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
+                                       np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
+        self.timestep_limit = 100
+        self.img_number = 0
+        self.actions_taken = 0
 
     def find_circle(self, image_array):
         # get image
         img = Image.fromarray(image_array)
-        gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
-        circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1,20,param1=50,param2=30,minRadius=0,maxRadius=0)
-        if circles is not None:
-            # convert the (x, y) coordinates and radius of the circles to integers
-            circles = np.round(circles[0, :]).astype("int")
-            # loop over the (x, y) coordinates and radius of the circles
-            return circles[0][0], circles[0][1]
-        else:
-            return -1
+        img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
+        img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
+        self.img_number += 1
+        img_hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
+        # lower mask (0-10)
+        lower_red = np.array([0,50,50])
+        upper_red = np.array([10,255,255])
+        mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
+
+        # upper mask (170-180)
+        lower_red = np.array([170,50,50])
+        upper_red = np.array([180,255,255])
+        mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
+        # join my masks
+        mask = mask0+mask1
+        # set my output img to zero everywhere except my mask
+        output_img = img.copy()
+        output_img[np.where(mask==0)] = 0
+
+        # or your HSV image, which I *believe* is what you want
+        # output_hsv = img_hsv.copy()
+        # output_hsv[np.where(mask==0)] = 0
+
+        # gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
+        # circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1,20,param1=50,param2=30,minRadius=0,maxRadius=0)
+        # if circles is not None:
+        #     # convert the (x, y) coordinates and radius of the circles to integers
+        #     circles = np.round(circles[0, :]).astype("int")
+        #     # loop over the (x, y) coordinates and radius of the circles
+        #     f = open("/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/kreis.txt", "a")
+        #     f.write(f"{circles[0][0]} {circles[0][1]}\n")
+        #     f.close()
+        #     return circles[0][0], circles[0][1]
+        # else:
+        #     return -1
+        i, j = self.get_circle_coordinates(output_img)
+        return i, j
+        # f = open("/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/kreis.txt", "a")
+        # f.write(f"{i} {j}\n")
+        # f.close()
+
+    def get_circle_coordinates(self, img, width=600, height=300):
+        for i in range(height):
+            for j in range(width):
+                if img[i][j].any() != 0:
+                    return i, j
+
+        return -1, -1
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
-        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
-        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
-        #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
+        #                                np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
+                                       np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
         done = False
         info = {}
-        self.action_0_joint.append(action[0])
-        self.action_1_joint.append(action[1])
-        self.action_2_joint.append(action[2])
-        self.action_3_joint.append(action[3])
-        self.action_4_joint.append(action[4])
-        self.action_5_joint.append(action[5])
+        # self.action_0_joint.append(action[0])
+        # self.action_1_joint.append(action[1])
+        # self.action_2_joint.append(action[2])
+        # self.action_3_joint.append(action[3])
+        # self.action_4_joint.append(action[4])
+        # self.action_5_joint.append(action[5])
 
         if not self.initialized:
             # self.current_observation = np.zeros((200,200,4))
@@ -115,6 +157,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             # coordinates = self.controller.pixel_2_world(pixel_x=x, pixel_y=y, depth=depth, height=self.IMAGE_HEIGHT, width=self.IMAGE_WIDTH)
             #
             # result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
+            self.actions_taken += 1
+            action = np.append(action, [0.3])
 
             self.action = action
 
@@ -128,11 +172,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
 
             # self.controller.set_group_joint_target(group='Arm', target=joint_angles)
-            self.controller.set_new_goal(self.data.qpos)
 
             # self.controller.add_marker(coordinates=, label=True)
             # res = self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=2000, render=self.render, quiet=False, marker=True)
-            res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.1, max_steps=5000, render=self.render, quiet=False, marker=True)
+            res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False, marker=True)
 
             # self.current_observation = self.get_observation(show=self.show_observations)
             # print("###ACTION:###")
@@ -161,7 +204,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"reward: {reward}")
             print("######################################################################################################")
+            # self.controller.display_current_values()
             #  #  #  # self.reset() #  #  #  #
+            if reward >= -0.1 or self.actions_taken >= 5:
+                done = True
+                self.actions_taken = 0
+                # self.controller.set_new_goal(self.data.qpos)
         self.step_called += 1
         # print(self.current_observation, reward, done, info)
         return self.current_observation, reward, done, info
@@ -172,9 +220,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         Gets called in the parent classes reset method.
         """
 
+        # mujoco_env.MujocoEnv.close(self)
         # qpos = self.data.qpos
         # qvel = self.data.qvel
-
+        self.controller.set_new_goal(self.data.qpos)
         # qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
@@ -229,7 +278,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #
         # img = Image.fromarray(argb)
         # img.show()
-        observation = self.action
+        observation = []
+        for i in range(len(self.controller.actuated_joint_ids)):
+            observation = np.append(observation, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
+
+        # observation = self.action
         observation = np.append(observation, coordinates)
         print(observation)
         # print(observation.shape)
@@ -259,7 +312,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def close(self):
         mujoco_env.MujocoEnv.close(self)
-        cv.destroyAllWindows()
+        # cv.destroyAllWindows()
 
     def print_info(self):
         # print('Model timestep:', self.model.opt.timestep)
