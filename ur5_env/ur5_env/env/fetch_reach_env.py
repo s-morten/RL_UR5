@@ -39,7 +39,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.step_called = 0
         utils.EzPickle.__init__(self)
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
-        self.mode = 'her'
+        self.mode_her = True
 
         self.controller = MJ_Controller(self.model, self.sim, self.viewer)
         # self.controller = MJ_Controller()
@@ -68,7 +68,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
         # img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
         self.img_number += 1
-        img_hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
         # lower mask (0-10)
         lower_red = np.array([0,50,50])
@@ -178,7 +178,6 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             # self.controller.add_marker(coordinates=, label=True)
             # res = self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=2000, render=self.render, quiet=False, marker=True)
             res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False, marker=True)
-
             # self.current_observation = self.get_observation(show=self.show_observations)
             # print("###ACTION:###")
             # print(action)
@@ -199,10 +198,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward = -10
             # reward = goal_distance(self.current_observation['desired_goal'], self.current_observation['achieved_goal'])
             print("######################################################################################################")
-            print(f"action: {action}")
+            print(f"action: \n {action}")
             print("------------------------------------------------------------------------------------------------------")
-            # print(f"desired_goal: {self.current_observation['desired_goal']}, achieved_goal: {self.current_observation['achieved_goal']}")
-            print(f"desired_goal: {self.desired_goal}, achieved_goal: {self.achieved_goal}")
+            print("observation: \n", self.current_observation[:7], "\n", self.current_observation[7:9])
+            print("------------------------------------------------------------------------------------------------------")
+            print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")
             print(f"reward: {reward}")
             print("######################################################################################################")
@@ -225,7 +225,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # mujoco_env.MujocoEnv.close(self)
         # qpos = self.data.qpos
         # qvel = self.data.qvel
-        self.controller.set_new_goal(self.data.qpos)
+        # self.controller.set_new_goal(self.data.qpos)
         # qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
@@ -261,7 +261,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # obs = np.append(rgb, depth)
 
         coordinates = self.find_circle(argb)
-        print(f"coordinates {coordinates}")
+        # print(f"coordinates {coordinates}")
 
         # argb = argb[70:230, :, :]
         # argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
@@ -286,11 +286,22 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         # observation = self.action
         observation = np.append(observation, coordinates)
-        print(observation)
+        # print(observation)
         # print(observation.shape)
         self.desired_goal = self.controller.current_goal
-        self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 + [0, 0.6, -0.36]
+        # self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 # + [0, 0.6, -0.36]
+        self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2 # + [0, 0.6, -0.36]
+        # joint_i = self.controller.sim.model.get_joint_qpos_addr("base_to_rik")
+        # self.achieved_goal = ( self.controller.sim.data.qpos[self.controller.sim.model.get_joint_qpos_addr("base_to_rik")] + self.controller.sim.data.qpos[self.controller.sim.model.get_joint_qpos_addr("base_to_lik")]  ) / 2
+
+        # print("xpos ball: ", self.controller.sim.data.body_xpos[self.model.body_name2id('ball_1')])
+        
+        # print("xpos ball: ", self.controller.sim.data.body_xpos[self.model.body_name2id('ball_1')])
+        # print(f"joint address: {joint_i}")
+        # print(self.controller.sim.data.qpos[joint_i])
         # self.controller.set_goal_range(self.achieved_goal)
+        # self.controller.set_new_goal(self.data.qpos, self.achieved_goal)
+        self.controller.set_new_goal(self.achieved_goal)
         # observation = defaultdict()
         # observation['observation'] = observation
         # observation['desired_goal'] = self.controller.current_goal
@@ -329,7 +340,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def compute_reward(self, achieved_goal, goal, info):
         # Compute distance between goal and the achieved goal.
         d = goal_distance(achieved_goal, goal)
-        print(-(d > self.distance_threshold).astype(np.float32))
+        # print(-(d > self.distance_threshold).astype(np.float32))
         return -(d > self.distance_threshold).astype(np.float32)
 
     def plot_actions(self):

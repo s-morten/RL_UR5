@@ -17,7 +17,6 @@ import copy
 # from decorators import debug
 import random
 
-
 class MJ_Controller(object):
     """
     Class for control of an robotic arm in MuJoCo.
@@ -61,41 +60,51 @@ class MJ_Controller(object):
         self.current_goal = [0, 0, 0]
         self.goal_low = [0.275, 0.1, -0.3]
         self.goal_high = [-0.26, -0.33, -0.3]
-        # self.goal_goal_low = [-0.23, -0.3, 0.5]
-        # self.goal_goal_high = [0.23, 0.3, 0.5]
-        # self.goal_goal_low = [0.48, 1.12, 1.13]
-        # self.goal_goal_high = [0.48, 1.12, 1.13]
-        # self.goal_goal_low = [0.4877, 0.71, 0.85]
-        # self.goal_goal_high = [0.4877, 0.71, 0.85]
-        # self.goal_goal_low = [0.48691776, 0.12197666, 1.22697751]
-        # self.goal_goal_high = [0.48691776, 0.12197666, 1.22697751]
-        self.goal_goal_low = [0.4877, 0.71, 0.85]
-        self.goal_goal_high = [0.4877, 0.71, 0.85]
-        # self.move_group_to_joint_target()
+
+        self.goal_goal_low = [-0.25, -0.45, 0.075]
+        self.goal_goal_high = [0.25, -0.97, 0.075]
+        # self.goal_goal_high = [-0.25, -0.97, 0.075]
 
     def set_goal_range(self, input):
         self.goal_goal_low = input
         self.goal_goal_high = input
 
-    def set_new_goal(self, qpos):
-        # qpos = self.data.qpos
+    def set_new_goal(self, qval):
+    # def set_new_goal(self, qpos, qval):
+        # print("lol")
+        # self.sim.data.body_xpos[self.model.body_name2id('ball_1')] = [0, 0, 0]
+
+
+        # self.model.body_pos[self.model.body_name2id('ball_1')] = qval
         goal = np.zeros(3)
-        for j in ['rot', 'x', 'y', 'z']:
-            joint_name = 'ball_1_' + j
-            qadr = self.model.get_joint_qpos_addr(joint_name)
-            if j == 'x':
-                qpos[qadr] = random.uniform(self.goal_low[0], self.goal_high[0])
-                goal[0] = qpos[qadr]
-            elif j == 'y':
-                qpos[qadr] = random.uniform(self.goal_low[1], self.goal_high[1])
-                goal[1] = qpos[qadr]
-            elif j == 'z':
-                qpos[qadr] = random.uniform(self.goal_low[2], self.goal_high[2])
-                goal[2] = qpos[qadr]
-            elif j == 'rot':
-                start, end = qadr
-                qpos[start:end] = [1., 0., 0., 0.]
+        goal[0] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
+        goal[1] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
+        goal[2] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
+
+        self.model.body_pos[self.model.body_name2id('ball_1')] = goal
+
+
+    #    # qpos = self.data.qpos
+    #    goal = np.zeros(3)
+    #    for j in ['rot', 'x', 'y', 'z']:
+    #        joint_name = 'ball_1_' + j
+    #        qadr = self.model.get_joint_qpos_addr(joint_name)
+    #        if j == 'x':
+    #            qpos[qadr] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
+    #            goal[0] = qpos[qadr]
+    #        elif j == 'y':
+    #            qpos[qadr] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
+    #            goal[1] = qpos[qadr]
+    #        elif j == 'z':
+    #            qpos[qadr] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
+    #            goal[2] = qpos[qadr]
+    #        elif j == 'rot':
+    #            start, end = qadr
+    #            qpos[start:end] = [1., 0., 0., 0.]
         self.current_goal=goal
+    #   qadr = self.model.get_joint_qpos_addr("ball_1_rot")
+    #   print("qadr", qadr)
+    #   qpos[qadr] = qval
 
     def create_group(self, group_name, idx_list):
         """
@@ -284,17 +293,6 @@ class MJ_Controller(object):
                 #     self.add_marker(temp)
                 if marker:
                     self.add_marker(self.current_goal)
-                    # self.add_marker([0.5, -0.3, 0.65])
-                    # self.add_marker([-0.5, -0.3, 0.65])
-                    #
-                    # self.add_marker([0.5, -0.8, 0.65])
-                    # self.add_marker([-0.5, -0.8, 0.65])
-                    #
-                    # self.add_marker([0.5, -0.3, 1.4])
-                    # self.add_marker([-0.5, -0.3, 1.4])
-                    #
-                    # self.add_marker([0.5, -0.8, 1.4])
-                    # self.add_marker([-0.5, -0.8, 1.4])
 
                 if max(deltas) < tolerance:
                     if target is not None and not quiet:
