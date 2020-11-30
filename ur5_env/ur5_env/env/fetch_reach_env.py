@@ -8,8 +8,8 @@ from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
 
 # Ensure we get the path separator correct on windows
-# MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
-MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
+MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
+# MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 
 def goal_distance(goal_a, goal_b):
     assert goal_a.shape == goal_b.shape
@@ -63,8 +63,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def find_circle(self, image_array):
         # get image
         img = Image.fromarray(image_array)
-        img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
-        img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
+        img.save(f"/home/morten/RL_husky/ur5_env/ur5_env/obs_space.png")
+        img = cv2.imread(f"/home/morten/RL_husky/ur5_env/ur5_env/obs_space.png")
+        # img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
+        # img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
         self.img_number += 1
         img_hsv=cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
