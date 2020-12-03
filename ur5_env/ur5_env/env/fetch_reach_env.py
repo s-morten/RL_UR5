@@ -1,11 +1,12 @@
 import numpy as np
-import cv2
+from cv2 import cv2
 import matplotlib.pyplot as plt
 from PIL import Image
 from gym import utils, spaces
 from gym.envs.mujoco import mujoco_env
 from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
+import gc
 
 # Ensure we get the path separator correct on windows
 # MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
@@ -59,6 +60,14 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.timestep_limit = 100
         self.img_number = 0
         self.actions_taken = 0
+
+    def reset_mujoco_env(self):
+        self.controller = None
+        gc.collect()
+        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        self.step_called = 0
+        self.reset()
+        print("++++++++++++++++++++++++ ENV RESET ++++++++++++++++++++++++++++++++")
 
     def find_circle(self, image_array):
         # get image
@@ -122,6 +131,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         return self.action_space
 
     def step(self, action, markers=False):
+        # if self.step_called >= 10:
+        #     self.reset_mujoco_env()
         done = False
         info = {}
         # self.action_0_joint.append(action[0])
@@ -194,7 +205,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward = goal_distance(self.desired_goal, self.achieved_goal)
             else:
                 reward = -10
+
             # reward = goal_distance(self.current_observation['desired_goal'], self.current_observation['achieved_goal'])
+
             print("######################################################################################################")
             print(f"action: \n {action}")
             print("------------------------------------------------------------------------------------------------------")
@@ -204,9 +217,20 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"reward: {reward}")
             print("######################################################################################################")
+
+            # print("######################################################################################################")
+            # print(f"action: \n {action}")
+            # print("------------------------------------------------------------------------------------------------------")
+            # print("observation: \n", self.current_observation['observation'][:7], "\n", self.current_observation['observation'][7:9])
+            # print("------------------------------------------------------------------------------------------------------")
+            # print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
+            # print("------------------------------------------------------------------------------------------------------")
+            # print(f"reward: {reward}")
+            # print("######################################################################################################")
             # self.controller.display_current_values()
             #  #  #  # self.reset() #  #  #  #
-            if reward >= -0.1 or self.actions_taken >= 5:
+
+            if reward >= -0.05 or self.actions_taken >= 1:
                 done = True
                 self.actions_taken = 0
                 # self.controller.set_new_goal(self.data.qpos)
@@ -220,6 +244,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         Gets called in the parent classes reset method.
         """
 
+        self.controller.sim.reset()        
         # mujoco_env.MujocoEnv.close(self)
         # qpos = self.data.qpos
         # qvel = self.data.qvel
@@ -283,6 +308,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             observation = np.append(observation, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
 
         # observation = self.action
+        # observation1 = np.append(observation, coordinates)
+
         observation = np.append(observation, coordinates)
         # print(observation)
         # print(observation.shape)
@@ -301,9 +328,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         # self.controller.set_new_goal(self.data.qpos, self.achieved_goal)
         self.controller.set_new_goal(self.achieved_goal)
         # observation = defaultdict()
-        # observation['observation'] = observation
+        # observation['observation'] = observation1
         # observation['desired_goal'] = self.controller.current_goal
-        # observation['achieved_goal'] = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 + [0, 0.6, -0.36]
+        # observation['achieved_goal'] = self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2
 
         # #observation['achieved_goal'] = (self.controller.sim.data.body_xpos[self.controller.model.body_name2id('left_inner_knuckle')] + [0, 0.588, -0.3769])
         # # self.controller.set_goal_range(observation['achieved_goal'])
