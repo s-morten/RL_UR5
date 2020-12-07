@@ -25,19 +25,13 @@ for episode in range(1, N_EPISODES+1):
         #env.controller.display_current_values()
         print('#################################################################')
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        # action = [0, -3.14, 1.57, -1.57, -1.57, 0.0, 0.3]
-        # All
-        # -3.14 / 0
-        #
+        # action = [-1.85, -0.8, 1.57, -1.57, -1.57, 0.0]
         action = env.action_space.sample()
-        # action = [100,100] # multidiscrete
-        # action = 20000 #discrete
-        # observation, reward, done, _ = env.step(action, record_grasps=True)
+        
         observation, reward, done, _ = env.step(action)
         if done:
             break
-        # observation, reward, done, _ = env.step(action, record_grasps=True, render=True)
-        # obs = env.reset(show_obs=SHOW_OBS)
+        
 env.plot_actions()
 env.close()
 

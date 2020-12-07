@@ -11,7 +11,7 @@ from simple_pid import PID
 from termcolor import colored
 import ikpy
 from pyquaternion import Quaternion
-import cv2 as cv
+from cv2 import cv2
 import matplotlib.pyplot as plt
 import copy
 # from decorators import debug
@@ -25,7 +25,7 @@ class MJ_Controller(object):
     to perform tasks on an already instantiated simulation.
     """
 
-    def __init__(self, model=None, simulation=None, viewer=None):
+    def __init__(self, model=None, simulation=None, viewer=None, render=False):
         path = os.path.realpath(__file__)
         path = str(Path(path).parent.parent.parent)
         if model==None:
@@ -37,13 +37,15 @@ class MJ_Controller(object):
             self.sim = mp.MjSim(self.model)
         else:
             self.sim = simulation
-        # if viewer==None:
-        #     print('Viewer was None')
-        #     self.viewer = mp.MjViewer(self.sim)
-        # else:
-        #     print('Viewer was not none')
-        #     self.viewer = viewer
-        self.viewer = None
+        if render:
+            if viewer==None:
+                print('Viewer was None')
+                self.viewer = mp.MjViewer(self.sim)
+            else:
+                print('Viewer was not none')
+                self.viewer = viewer
+        else:
+            self.viewer = None
         self.create_lists()
         self.groups = defaultdict(list)
         self.groups['All'] = [i for i in range(len(self.sim.data.ctrl))]
@@ -62,15 +64,22 @@ class MJ_Controller(object):
         self.goal_low = [0.275, 0.1, -0.3]
         self.goal_high = [-0.26, -0.33, -0.3]
 
+
         self.goal_goal_low = [-0.25, -0.45, 0.075]
         self.goal_goal_high = [0.25, -0.97, 0.075]
+
+
+        # only one goal
+        # self.goal_goal_low = [0, -0.62, 0.075]
+        # self.goal_goal_high = [0, -0.62, 0.075]
+
         # self.goal_goal_high = [-0.25, -0.97, 0.075]
 
     def set_goal_range(self, input):
         self.goal_goal_low = input
         self.goal_goal_high = input
 
-    def set_new_goal(self, qval):
+    def set_new_goal(self):
     # def set_new_goal(self, qpos, qval):
         # print("lol")
         # self.sim.data.body_xpos[self.model.body_name2id('ball_1')] = [0, 0, 0]
@@ -337,7 +346,7 @@ class MJ_Controller(object):
 
         except Exception as e:
             print(e)
-            print('Could not set new group joint target for group '.format(group))
+            print('Could not set new group joint target for group {}'.format(group))
 
 
 
@@ -611,11 +620,11 @@ class MJ_Controller(object):
             rgb, depth = copy.deepcopy(self.sim.render(width=width, height=height, camera_name=camera, depth=True))
 
         if show:
-            cv.imshow('rbg', cv.cvtColor(rgb, cv.COLOR_BGR2RGB))
-            # cv.imshow('depth', depth)
-            cv.waitKey(1)
-            # cv.waitKey(delay=5000)
-            # cv.destroyAllWindows()
+            cv2.imshow('rbg', cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB))
+            # cv2.imshow('depth', depth)
+            cv2.waitKey(1)
+            # cv2.waitKey(delay=5000)
+            # cv2.destroyAllWindows()
 
         return np.array(np.fliplr(np.flipud(rgb))), np.array(np.fliplr(np.flipud(depth)))
 
