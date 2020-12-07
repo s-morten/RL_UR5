@@ -37,12 +37,13 @@ class MJ_Controller(object):
             self.sim = mp.MjSim(self.model)
         else:
             self.sim = simulation
-        if viewer==None:
-            print('Viewer was None')
-            self.viewer = mp.MjViewer(self.sim)
-        else:
-            print('Viewer was not none')
-            self.viewer = viewer
+        # if viewer==None:
+        #     print('Viewer was None')
+        #     self.viewer = mp.MjViewer(self.sim)
+        # else:
+        #     print('Viewer was not none')
+        #     self.viewer = viewer
+        self.viewer = None
         self.create_lists()
         self.groups = defaultdict(list)
         self.groups['All'] = [i for i in range(len(self.sim.data.ctrl))]
@@ -291,8 +292,8 @@ class MJ_Controller(object):
                 # if marker:
                 #     self.add_marker(self.current_carthesian_target)
                 #     self.add_marker(temp)
-                if marker:
-                    self.add_marker(self.current_goal)
+                # if marker:
+                #     self.add_marker(self.current_goal)
 
                 if max(deltas) < tolerance:
                     if target is not None and not quiet:
