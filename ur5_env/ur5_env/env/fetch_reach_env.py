@@ -6,47 +6,28 @@ from gym import utils, spaces
 from gym.envs.mujoco import mujoco_env
 from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
+from ur5_env.env.ball_finder import Ball_Finder
 import gc
 
 # Ensure we get the path separator correct on windows
 # MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 
-def goal_distance(goal_a, goal_b):
-    assert goal_a.shape == goal_b.shape
-    sum = 0.0
-    tmp = 0.0
-    for i in range(3):
-        tmp = goal_a[i] - goal_b[i]
-        if tmp < 0:
-            sum += tmp
-        else:
-            sum -= tmp
-    return sum
-
-
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, demo=False):
+    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, mode='normal'):
         self.initialized = False
-        self.action_0_joint = []
-        self.action_1_joint = []
-        self.action_2_joint = []
-        self.action_3_joint = []
-        self.action_4_joint = []
-        self.action_5_joint = []
+        self.mode = mode
         self.IMAGE_WIDTH = image_width
         self.IMAGE_HEIGHT = image_height
         self.rotations = {0: 0, 1: 30, 2: 60, 3: 90, 4: -30, 5: -60}
         self.step_called = 0
         utils.EzPickle.__init__(self)
         mujoco_env.MujocoEnv.__init__(self, MODEL_XML_PATH, 1)
-        self.mode_her = True
-
-        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
+        self.controller = MJ_Controller(self.model, self.sim, self.viewer, render)
         # self.controller = MJ_Controller()
+        self.ball_finder = Ball_Finder()
         self.initialized = True
         self.show_observations = show_obs
-        self.demo_mode = demo
         self.render = render
         self.distance_threshold = 0.1
         self._max_episode_steps = 1000
@@ -58,69 +39,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
         self.timestep_limit = 100
-        self.img_number = 0
         self.actions_taken = 0
-
-    def reset_mujoco_env(self):
-        self.controller = None
-        gc.collect()
-        self.controller = MJ_Controller(self.model, self.sim, self.viewer)
-        self.step_called = 0
-        self.reset()
-        print("++++++++++++++++++++++++ ENV RESET ++++++++++++++++++++++++++++++++")
-
-    def find_circle(self, image_array):
-        # get image
-        img = Image.fromarray(image_array)
-        img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
-        img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
-        self.img_number += 1
-        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-        # lower mask (0-10)
-        lower_red = np.array([0,50,50])
-        upper_red = np.array([10,255,255])
-        mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
-
-        # upper mask (170-180)
-        lower_red = np.array([170,50,50])
-        upper_red = np.array([180,255,255])
-        mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
-        # join my masks
-        mask = mask0+mask1
-        # set my output img to zero everywhere except my mask
-        output_img = img.copy()
-        output_img[np.where(mask==0)] = 0
-
-        # or your HSV image, which I *believe* is what you want
-        # output_hsv = img_hsv.copy()
-        # output_hsv[np.where(mask==0)] = 0
-
-        # gray = cv2.cvtColor(image_array, cv2.COLOR_BGR2GRAY)
-        # circles = cv2.HoughCircles(gray,cv2.HOUGH_GRADIENT,1,20,param1=50,param2=30,minRadius=0,maxRadius=0)
-        # if circles is not None:
-        #     # convert the (x, y) coordinates and radius of the circles to integers
-        #     circles = np.round(circles[0, :]).astype("int")
-        #     # loop over the (x, y) coordinates and radius of the circles
-        #     f = open("/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/kreis.txt", "a")
-        #     f.write(f"{circles[0][0]} {circles[0][1]}\n")
-        #     f.close()
-        #     return circles[0][0], circles[0][1]
-        # else:
-        #     return -1
-        i, j = self.get_circle_coordinates(output_img)
-        return i, j
-        # f = open("/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/kreis.txt", "a")
-        # f.write(f"{i} {j}\n")
-        # f.close()
-
-    def get_circle_coordinates(self, img, width=600, height=300):
-        for i in range(height):
-            for j in range(width):
-                if img[i][j].any() != 0:
-                    return i, j
-
-        return -1, -1
+        self.controller.set_new_goal()
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -131,44 +51,26 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         return self.action_space
 
     def step(self, action, markers=False):
-        # if self.step_called >= 10:
-        #     self.reset_mujoco_env()
         done = False
         info = {}
-        # self.action_0_joint.append(action[0])
-        # self.action_1_joint.append(action[1])
-        # self.action_2_joint.append(action[2])
-        # self.action_3_joint.append(action[3])
-        # self.action_4_joint.append(action[4])
-        # self.action_5_joint.append(action[5])
 
         if not self.initialized:
-            # self.current_observation = np.zeros((200,200,4))
-            # self.current_observation = defaultdict()
-            # self.current_observation['rgb'] = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT,3))
-            # self.current_observation['depth'] = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT))
-            # self.current_observation = spaces.Box(np.array(np.zeros(10)), np.array(np.ones(10)))
+            if self.mode == 'normal':
+                self.current_observation = np.zeros((9))
 
-            # self.current_observation = defaultdict()
-            # self.current_observation['observation'] = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT,3))
-            # self.current_observation['desired_goal'] = np.zeros(5)
-            # self.current_observation['achieved_goal'] = np.ones(5)
+            elif self.mode == 'her':
+                self.current_observation = defaultdict()
+                self.current_observation['observation'] = np.zeros(9)
+                self.current_observation['desired_goal'] = np.zeros(3)
+                self.current_observation['achieved_goal'] = np.ones(3)
 
-            # self.current_observation = np.zeros((self.IMAGE_WIDTH,self.IMAGE_HEIGHT,3))
-            # self.current_observation = np.zeros((24007))
-            self.current_observation = np.zeros((9))
-            reward = 0
+            else:
+                print("SOMETHING WENT WRONG!")
+            
+            reward = -10
         else:
-            # x = action[0] % self.IMAGE_WIDTH
-            # y = action[0] // self.IMAGE_WIDTH
-            # rotation = action[1]
-            #
-            # depth = self.current_observation['depth'][y][x]
-            #
-            # coordinates = self.controller.pixel_2_world(pixel_x=x, pixel_y=y, depth=depth, height=self.IMAGE_HEIGHT, width=self.IMAGE_WIDTH)
-            #
-            # result = self.controller.move_ee(coordinates, max_steps=1000, quiet=True, render=self.render, marker=markers, tolerance=0.05)
             self.actions_taken += 1
+            # add position of grapper to move target
             action = np.append(action, [0.3])
 
             self.action = action
@@ -176,38 +78,80 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             if self.step_called == 1:
                 self.current_observation = self.get_observation(show=self.show_observations)
 
-            # qpos[self.controller.actuated_joint_ids] = [action[0], action[1], action[2], action[3], action[4], action[5], 0.3]
-
-            # ?? self.set_state(qpos, qvel)
-
-            # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
-
-            # self.controller.set_group_joint_target(group='Arm', target=joint_angles)
-
-            # self.controller.add_marker(coordinates=, label=True)
-            # res = self.controller.move_group_to_joint_target(group='Arm', target=action, tolerance=0.1, max_steps=2000, render=self.render, quiet=False, marker=True)
             res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False, marker=True)
-            # self.current_observation = self.get_observation(show=self.show_observations)
-            # print("###ACTION:###")
-            # print(action)
-            # print("###WE ARE:###")
-            # for i in range(len(self.controller.actuators)):
-            #     print('{}: P: {}, I: {}, D: {}, setpoint: {}, sample_time: {}'.format(self.controller.actuators[i][3], self.controller.actuators[i][4].tunings[0], self.controller.actuators[i][4].tunings[1],
-            #                                                                     self.controller.actuators[i][4].tunings[2], self.controller.actuators[i][4].setpoint, self.controller.actuators[i][4].sample_time))
 
             self.current_observation = self.get_observation()
 
-            # reward = 0
-            # for i in range(3):
-            #     if not math.isclose(self.current_observation['desired_goal'][i], self.current_observation['achieved_goal'][i], rel_tol=1e-1):
-            #         reward = -1
             if res == 'success':
-                reward = goal_distance(self.desired_goal, self.achieved_goal)
+                reward = self.goal_distance(self.desired_goal, self.achieved_goal)
             else:
                 reward = -10
 
-            # reward = goal_distance(self.current_observation['desired_goal'], self.current_observation['achieved_goal'])
+            self.print_step_info(action, reward)
 
+            if reward >= -0.05 or self.actions_taken >= 1:
+                done = True
+                self.actions_taken = 0
+
+        self.step_called += 1
+
+        return self.current_observation, reward, done, info
+
+    def reset(self, show_obs=True):
+        """
+        Method to perform additional reset steps and return an observation.
+        Gets called in the parent classes reset method.
+        """
+
+        self.controller.sim.reset()
+        self.controller.set_new_goal()              
+        action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        self.controller.move_group_to_joint_target(group='All', target=action)
+
+        return self.get_observation(show=self.show_observations)
+
+    def get_observation(self, show=False):
+        """
+        Uses the controllers get_image_data method to return an top-down image (as a np-array).
+        Args:
+            show: If True, displays the observation in a cv2 window.
+        """
+
+        #TODO: depth into obs space
+
+        rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
+        depth = self.controller.depth_2_meters(depth)
+
+        circle_coordinates = self.ball_finder.find_circle(rgb)
+        
+        observation = []
+        # get joint positions
+        for i in range(len(self.controller.actuated_joint_ids)):
+            joints = np.append(observation, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
+
+        self.desired_goal = self.controller.current_goal
+        self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2
+        
+        if self.mode == 'normal':
+            observation = np.append(joints, circle_coordinates)
+
+        elif self.mode == 'her':
+            observation = defaultdict()
+            observation['observation'] = np.append(joints, circle_coordinates)
+            observation['desired_goal'] = self.desired_goal
+            observation['achieved_goal'] = self.achieved_goal
+
+        else:
+            print("SOMETHING WENT WRONG!")
+
+        return observation
+
+    def close(self):
+        mujoco_env.MujocoEnv.close(self)
+        # cv.destroyAllWindows()
+
+    def print_step_info(self, action, reward):
+        if self.mode == 'normal':
             print("######################################################################################################")
             print(f"action: \n {action}")
             print("------------------------------------------------------------------------------------------------------")
@@ -218,139 +162,17 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print(f"reward: {reward}")
             print("######################################################################################################")
 
-            # print("######################################################################################################")
-            # print(f"action: \n {action}")
-            # print("------------------------------------------------------------------------------------------------------")
-            # print("observation: \n", self.current_observation['observation'][:7], "\n", self.current_observation['observation'][7:9])
-            # print("------------------------------------------------------------------------------------------------------")
-            # print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
-            # print("------------------------------------------------------------------------------------------------------")
-            # print(f"reward: {reward}")
-            # print("######################################################################################################")
-            # self.controller.display_current_values()
-            #  #  #  # self.reset() #  #  #  #
+        elif self.mode == 'her':
+            print("######################################################################################################")
+            print(f"action: \n {action}")
+            print("------------------------------------------------------------------------------------------------------")
+            print("observation: \n", self.current_observation['observation'][:7], "\n", self.current_observation['observation'][7:9])
+            print("------------------------------------------------------------------------------------------------------")
+            print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
+            print("------------------------------------------------------------------------------------------------------")
+            print(f"reward: {reward}")
+            print("######################################################################################################")
 
-            if reward >= -0.05 or self.actions_taken >= 1:
-                done = True
-                self.actions_taken = 0
-                # self.controller.set_new_goal(self.data.qpos)
-        self.step_called += 1
-        # print(self.current_observation, reward, done, info)
-        return self.current_observation, reward, done, info
-
-    def reset(self, show_obs=True):
-        """
-        Method to perform additional reset steps and return an observation.
-        Gets called in the parent classes reset method.
-        """
-
-        self.controller.sim.reset()        
-        # mujoco_env.MujocoEnv.close(self)
-        # qpos = self.data.qpos
-        # qvel = self.data.qvel
-        # self.controller.set_new_goal(self.data.qpos)
-        # qpos[self.controller.actuated_joint_ids] = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        # n_objects = 40
-
-        # self.set_state(qpos, qvel)
-
-        # self.controller.set_group_joint_target(group='All', target= qpos[self.controller.actuated_joint_ids])
-        self.controller.move_group_to_joint_target(group='All', target=action)
-
-        # Turn this on for training, so the objects drop down before the observation
-        # self.controller.stay(1000, render=self.render)
-        # if self.demo_mode:
-        #    self.controller.stay(2000, render=self.render)
-
-        # return an observation image
-        return self.get_observation(show=self.show_observations)
-
-    def get_observation(self, show=False):
-        """
-        Uses the controllers get_image_data method to return an top-down image (as a np-array).
-        Args:
-            show: If True, displays the observation in a cv2 window.
-        """
-
-        argb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
-        depth = self.controller.depth_2_meters(depth)
-        # observation = defaultdict()
-        # observation['rgb'] = rgb
-        # observation['depth'] = depth
-
-        # how to combine rgb and depth? is it working like this?
-        # obs = np.append(rgb, depth)
-
-        coordinates = self.find_circle(argb)
-        # print(f"coordinates {coordinates}")
-
-        # argb = argb[70:230, :, :]
-        # argb = np.dot(argb[..., :3], [0.2989, 0.5870, 0.1140])
-        #
-        # img = Image.fromarray(argb)
-        # img.thumbnail((300, 80), Image.ANTIALIAS)
-        # argb = img.getdata()
-        # argb = np.array(argb)
-        # print(argb.shape)
-
-        # img = Image.fromarray(argb, 'RGB')
-        # img.save('my.png')
-        # box = (0,70,600,230)
-        # cropped_img = img.crop(box)
-        # cropped_img.save("your.png")
-        #
-        # img = Image.fromarray(argb)
-        # img.show()
-        observation = []
-        for i in range(len(self.controller.actuated_joint_ids)):
-            observation = np.append(observation, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
-
-        # observation = self.action
-        # observation1 = np.append(observation, coordinates)
-
-        observation = np.append(observation, coordinates)
-        # print(observation)
-        # print(observation.shape)
-        self.desired_goal = self.controller.current_goal
-        # self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4 # + [0, 0.6, -0.36]
-        self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2 # + [0, 0.6, -0.36]
-        # joint_i = self.controller.sim.model.get_joint_qpos_addr("base_to_rik")
-        # self.achieved_goal = ( self.controller.sim.data.qpos[self.controller.sim.model.get_joint_qpos_addr("base_to_rik")] + self.controller.sim.data.qpos[self.controller.sim.model.get_joint_qpos_addr("base_to_lik")]  ) / 2
-
-        # print("xpos ball: ", self.controller.sim.data.body_xpos[self.model.body_name2id('ball_1')])
-        
-        # print("xpos ball: ", self.controller.sim.data.body_xpos[self.model.body_name2id('ball_1')])
-        # print(f"joint address: {joint_i}")
-        # print(self.controller.sim.data.qpos[joint_i])
-        # self.controller.set_goal_range(self.achieved_goal)
-        # self.controller.set_new_goal(self.data.qpos, self.achieved_goal)
-        self.controller.set_new_goal(self.achieved_goal)
-        # observation = defaultdict()
-        # observation['observation'] = observation1
-        # observation['desired_goal'] = self.controller.current_goal
-        # observation['achieved_goal'] = self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2
-
-        # #observation['achieved_goal'] = (self.controller.sim.data.body_xpos[self.controller.model.body_name2id('left_inner_knuckle')] + [0, 0.588, -0.3769])
-        # # self.controller.set_goal_range(observation['achieved_goal'])
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('ee_link')] - [0, -0.005, 0.16])
-        # print(self.controller.sim.data.body_xpos[self.controller.model.body_name2id('wrist_3_link')])
-        # print(self.controller.sim.data.body_xpos[self.controller.model.body_name2id('ee_link'))
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('base_link')]) # - [0, -0.005, 0.16]
-        # print("ee_link:")
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('ee_link')])
-        # print("left_inner_knuckle:")
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')])
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')])
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')])
-        # print(self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')])
-        # print((self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_knuckle')] + self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 4)
-        return observation
-
-    def close(self):
-        mujoco_env.MujocoEnv.close(self)
-        # cv.destroyAllWindows()
 
     def print_info(self):
         # print('Model timestep:', self.model.opt.timestep)
@@ -364,15 +186,18 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def compute_reward(self, achieved_goal, goal, info):
         # Compute distance between goal and the achieved goal.
-        d = goal_distance(achieved_goal, goal)
+        d = self.goal_distance(achieved_goal, goal)
         # print(-(d > self.distance_threshold).astype(np.float32))
         return -(d > self.distance_threshold).astype(np.float32)
 
-    def plot_actions(self):
-        plt.plot(self.action_0_joint)
-        plt.plot(self.action_1_joint)
-        plt.plot(self.action_2_joint)
-        plt.plot(self.action_3_joint)
-        plt.plot(self.action_4_joint)
-        plt.plot(self.action_5_joint)
-        plt.show()
+    def goal_distance(self, goal_a, goal_b):
+        assert goal_a.shape == goal_b.shape
+        sum = 0.0
+        tmp = 0.0
+        for i in range(3):
+            tmp = goal_a[i] - goal_b[i]
+            if tmp < 0:
+                sum += tmp
+            else:
+                sum -= tmp
+        return sum
