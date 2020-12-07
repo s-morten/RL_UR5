@@ -56,11 +56,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         if not self.initialized:
             if self.mode == 'normal':
-                self.current_observation = np.zeros((9))
+                self.current_observation = np.zeros((10))
 
             elif self.mode == 'her':
                 self.current_observation = defaultdict()
-                self.current_observation['observation'] = np.zeros(9)
+                self.current_observation['observation'] = np.zeros(10)
                 self.current_observation['desired_goal'] = np.zeros(3)
                 self.current_observation['achieved_goal'] = np.ones(3)
 
@@ -78,7 +78,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             if self.step_called == 1:
                 self.current_observation = self.get_observation(show=self.show_observations)
 
-            res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.1, max_steps=1000, render=self.render, quiet=False, marker=True)
+            res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
 
             self.current_observation = self.get_observation()
 
@@ -124,20 +124,23 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         circle_coordinates = self.ball_finder.find_circle(rgb)
         
-        observation = []
+        depth_val = depth[circle_coordinates[0]][circle_coordinates[1]]
+
+        joints = []
         # get joint positions
         for i in range(len(self.controller.actuated_joint_ids)):
-            joints = np.append(observation, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
+            joints = np.append(joints, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
 
         self.desired_goal = self.controller.current_goal
         self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2
         
         if self.mode == 'normal':
             observation = np.append(joints, circle_coordinates)
+            observation = np.append(observation, depth_val)
 
         elif self.mode == 'her':
             observation = defaultdict()
-            observation['observation'] = np.append(joints, circle_coordinates)
+            observation['observation'] = np.append(joints, circle_coordinates, depth_val)
             observation['desired_goal'] = self.desired_goal
             observation['achieved_goal'] = self.achieved_goal
 
@@ -155,7 +158,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("######################################################################################################")
             print(f"action: \n {action}")
             print("------------------------------------------------------------------------------------------------------")
-            print("observation: \n", self.current_observation[:7], "\n", self.current_observation[7:9])
+            print("observation: \n", self.current_observation[:7], "\n", self.current_observation[7:9], "\n", self.current_observation[9:10])
             print("------------------------------------------------------------------------------------------------------")
             print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")

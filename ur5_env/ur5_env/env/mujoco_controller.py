@@ -64,12 +64,14 @@ class MJ_Controller(object):
         self.goal_low = [0.275, 0.1, -0.3]
         self.goal_high = [-0.26, -0.33, -0.3]
 
-        # self.goal_goal_low = [-0.25, -0.45, 0.075]
-        # self.goal_goal_high = [0.25, -0.97, 0.075]
+
+        self.goal_goal_low = [-0.25, -0.45, 0.075]
+        self.goal_goal_high = [0.25, -0.97, 0.075]
 
 
-        self.goal_goal_low = [0, -0.62, 0.075]
-        self.goal_goal_high = [0, -0.62, 0.075]
+        # only one goal
+        # self.goal_goal_low = [0, -0.62, 0.075]
+        # self.goal_goal_high = [0, -0.62, 0.075]
 
         # self.goal_goal_high = [-0.25, -0.97, 0.075]
 
