@@ -9,27 +9,18 @@ class Ball_Finder():
 
     def find_circle(self, image_array):
         # get image
-        img = Image.fromarray(image_array)
-        img.save(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
-        img = cv2.imread(f"/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/obs_space.png")
-        img_hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+        img = image_array
+        hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
-        # lower mask (0-10)
-        lower_red = np.array([0,50,50])
-        upper_red = np.array([10,255,255])
-        mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
+        # import like this turns red ball to blue? I dont know why and doesnt care...
+        # search for blue ball instead of red
 
-        # upper mask (170-180)
-        lower_red = np.array([170,50,50])
-        upper_red = np.array([180,255,255])
-        mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
-        # join my masks
-        mask = mask0+mask1
-        # set my output img to zero everywhere except my mask
-        output_img = img.copy()
-        output_img[np.where(mask==0)] = 0
-
-        i, j = self.get_circle_coordinates(output_img)
+        low_blue = np.array([94, 80, 2])
+        high_blue = np.array([126, 255, 255])
+        blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
+        blue = cv2.bitwise_and(img, img, mask=blue_mask)
+        
+        i, j = self.get_circle_coordinates(blue)
         return i, j
 
     def get_circle_coordinates(self, img, width=600, height=300):
