@@ -69,6 +69,7 @@ class MJ_Controller(object):
         self.goal_goal_high = [0.25, -0.97, 0.075]
 
 
+        self.goal_goal_one = [0, -0.71, 0.075]
         # only one goal
         # self.goal_goal_low = [0, -0.62, 0.075]
         # self.goal_goal_high = [0, -0.62, 0.075]
@@ -79,42 +80,25 @@ class MJ_Controller(object):
         self.goal_goal_low = input
         self.goal_goal_high = input
 
-    def set_new_goal(self):
-    # def set_new_goal(self, qpos, qval):
-        # print("lol")
-        # self.sim.data.body_xpos[self.model.body_name2id('ball_1')] = [0, 0, 0]
+    def set_new_goal(self, mode):
 
-
-        # self.model.body_pos[self.model.body_name2id('ball_1')] = qval
         goal = np.zeros(3)
-        goal[0] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
-        goal[1] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
-        goal[2] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
+        
+        if mode == 'random':
+            print("mode random")
+            goal[0] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
+            goal[1] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
+            goal[2] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
+        
+        elif mode == 'one':
+            print("mode one")
+            goal[0] = self.goal_goal_one[0]
+            goal[1] = self.goal_goal_one[1]
+            goal[2] = self.goal_goal_one[2]
+
 
         self.model.body_pos[self.model.body_name2id('ball_1')] = goal
-
-
-    #    # qpos = self.data.qpos
-    #    goal = np.zeros(3)
-    #    for j in ['rot', 'x', 'y', 'z']:
-    #        joint_name = 'ball_1_' + j
-    #        qadr = self.model.get_joint_qpos_addr(joint_name)
-    #        if j == 'x':
-    #            qpos[qadr] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
-    #            goal[0] = qpos[qadr]
-    #        elif j == 'y':
-    #            qpos[qadr] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
-    #            goal[1] = qpos[qadr]
-    #        elif j == 'z':
-    #            qpos[qadr] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
-    #            goal[2] = qpos[qadr]
-    #        elif j == 'rot':
-    #            start, end = qadr
-    #            qpos[start:end] = [1., 0., 0., 0.]
         self.current_goal=goal
-    #   qadr = self.model.get_joint_qpos_addr("ball_1_rot")
-    #   print("qadr", qadr)
-    #   qpos[qadr] = qval
 
     def create_group(self, group_name, idx_list):
         """

@@ -11,7 +11,6 @@ class Ball_Finder():
         # get image
         img = image_array
         hsv_frame = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
         # import like this turns red ball to blue? I dont know why and doesnt care...
         # search for blue ball instead of red
 

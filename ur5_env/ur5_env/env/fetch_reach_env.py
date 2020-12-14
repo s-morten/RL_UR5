@@ -14,7 +14,7 @@ import gc
 MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, mode='normal'):
+    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, mode='normal', goal_mode='one'):
         self.initialized = False
         self.mode = mode
         self.IMAGE_WIDTH = image_width
@@ -31,23 +31,23 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.render = render
         self.distance_threshold = 0.1
         self._max_episode_steps = 1000
-        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-        #                                np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
         self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
-                                       np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
+        #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
         self.timestep_limit = 100
         self.actions_taken = 0
-        self.controller.set_new_goal()
+        self.goal_mode = goal_mode
+        self.controller.set_new_goal(mode=self.goal_mode)
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
-        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159, 0.3]),
-        #                                np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159, 0.3]), dtype=np.float32)
         self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
-                                       np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+
         return self.action_space
 
     def step(self, action, markers=False):
@@ -78,11 +78,23 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             if self.step_called == 1:
                 self.current_observation = self.get_observation(show=self.show_observations)
 
-            res = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
+            joints = []
+            # get joint positions
+            for i in range(len(self.controller.actuated_joint_ids)):
+                joints = np.append(joints, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
+            joints[0] = action[0]
+            joints[2] = action[2]
+            joints[3] = action[3]
+            joints[4] = action[4]
+            joints[5] = action[5]
+            joints[6] = action[6]
 
+
+            res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
+            res_step_two = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
             self.current_observation = self.get_observation()
 
-            if res == 'success':
+            if res_step_one == 'success' and res_step_two == 'success':
                 reward = self.goal_distance(self.desired_goal, self.achieved_goal)
             else:
                 reward = -10
@@ -95,6 +107,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         self.step_called += 1
 
+        self.print_to_file(self.current_observation, reward, done)
+
         return self.current_observation, reward, done, info
 
     def reset(self, show_obs=True):
@@ -104,7 +118,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         """
 
         self.controller.sim.reset()
-        self.controller.set_new_goal()              
+        self.controller.set_new_goal(mode=self.goal_mode)              
         action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         self.controller.move_group_to_joint_target(group='All', target=action)
 
@@ -116,8 +130,6 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         Args:
             show: If True, displays the observation in a cv2 window.
         """
-
-        #TODO: depth into obs space
 
         rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
         depth = self.controller.depth_2_meters(depth)
@@ -140,7 +152,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         elif self.mode == 'her':
             observation = defaultdict()
-            observation['observation'] = np.append(joints, circle_coordinates, depth_val)
+            observation['observation'] = np.append(joints, circle_coordinates)
+            observation['observation'] = np.append(observation['observation'], depth_val)
             observation['desired_goal'] = self.desired_goal
             observation['achieved_goal'] = self.achieved_goal
 
@@ -204,3 +217,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             else:
                 sum -= tmp
         return sum
+
+    def print_to_file(self, obs, reward, done):
+        f = open("results.txt", "a")
+        # f.write(np.array2string(obs))
+        f.write(str(reward))
+        # f.write(str(done))
+        f.write("\n")
+        f.close()

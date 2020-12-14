@@ -7,10 +7,10 @@ import gym
 import ur5_env
 
 SHOW_OBS = False
-RENDER = False
+RENDER = True
 
 # env = gym.make('ur5-v0', show_obs=False, render=True)
-env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS)
+env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS, goal_mode='one')
 
 N_EPISODES = 100000000
 N_STEPS = 200
