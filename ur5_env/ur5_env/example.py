@@ -10,7 +10,7 @@ SHOW_OBS = False
 RENDER = True
 
 # env = gym.make('ur5-v0', show_obs=False, render=True)
-env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS, goal_mode='one')
+env = gym.make('ur5-v0', render=RENDER, show_obs=SHOW_OBS, goal_mode='one', mode="normal")
 
 N_EPISODES = 100000000
 N_STEPS = 200
@@ -25,8 +25,9 @@ for episode in range(1, N_EPISODES+1):
         #env.controller.display_current_values()
         print('#################################################################')
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        # action = [-1.85, -0.8, 1.57, -1.57, -1.57, 0.0]
-        action = env.action_space.sample()
+        action = [1.8, -2.2, -1.8, -1.0, 1.57, 1.57]
+        # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
+        # action = env.action_space.sample()
         
         observation, reward, done, _ = env.step(action)
         if done:

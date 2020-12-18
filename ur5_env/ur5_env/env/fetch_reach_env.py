@@ -8,6 +8,7 @@ from collections import defaultdict
 from ur5_env.env.mujoco_controller import MJ_Controller
 from ur5_env.env.ball_finder import Ball_Finder
 import gc
+import math
 
 # Ensure we get the path separator correct on windows
 # MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
@@ -95,15 +96,34 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             self.current_observation = self.get_observation()
 
             if res_step_one == 'success' and res_step_two == 'success':
-                reward = self.goal_distance(self.desired_goal, self.achieved_goal)
+                reward_dis = self.goal_distance(self.desired_goal, self.achieved_goal)
+                if self.mode == 'normal':
+                    alpha = abs(self.current_observation[1])
+                    beta = abs(self.current_observation[2])
+                    gamma = abs(self.current_observation[3])
+                elif self.mode == 'her':
+                    alpha = abs(self.current_observation['observation'][1])
+                    beta = abs(self.current_observation['observation'][2])
+                    gamma = abs(self.current_observation['observation'][3])
+
+                reward_ang = 0.5*math.pi - (2*math.pi - alpha - beta - gamma)
+                reward = reward_dis - abs(reward_ang)
             else:
                 reward = -10
-
-            self.print_step_info(action, reward)
+                reward_dis = 0
+                reward_ang = 0
 
             if reward >= -0.05 or self.actions_taken >= 1:
                 done = True
                 self.actions_taken = 0
+
+            if self.mode == 'her':
+                if reward >= -0.05:
+                    reward = 1
+                else:
+                    reward = 0
+
+            self.print_step_info(action, reward, reward_dis, reward_ang)
 
         self.step_called += 1
 
@@ -166,7 +186,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         mujoco_env.MujocoEnv.close(self)
         # cv.destroyAllWindows()
 
-    def print_step_info(self, action, reward):
+    def print_step_info(self, action, reward, reward_dis, reward_ang):
         if self.mode == 'normal':
             print("######################################################################################################")
             print(f"action: \n {action}")
@@ -175,7 +195,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")
-            print(f"reward: {reward}")
+            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}")
             print("######################################################################################################")
 
         elif self.mode == 'her':
@@ -186,7 +206,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")
-            print(f"reward: {reward}")
+            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}")
             print("######################################################################################################")
 
 
