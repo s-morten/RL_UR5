@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-f = open("./../results.txt", "r")
+f = open("results.txt", "r")
 plt_values = []
 tmp = 0
 cnt = 0

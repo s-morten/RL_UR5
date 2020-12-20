@@ -240,7 +240,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         return sum
 
     def print_to_file(self, obs, reward, done):
-        f = open("results.txt", "a")
+        f = open("results_one_angle_ppo.txt", "a")
         # f.write(np.array2string(obs))
         f.write(str(reward))
         # f.write(str(done))
