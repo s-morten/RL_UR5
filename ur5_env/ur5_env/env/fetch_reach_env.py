@@ -106,7 +106,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     beta = abs(self.current_observation['observation'][2])
                     gamma = abs(self.current_observation['observation'][3])
 
-                reward_ang = 0.5*math.pi - (2*math.pi - alpha - beta - gamma)
+                reward_ang = 0.5*math.pi - (2*math.pi - alpha - (math.pi - beta) - gamma)
                 reward = reward_dis - abs(reward_ang)
             else:
                 reward = -10
