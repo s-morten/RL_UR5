@@ -106,12 +106,20 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     beta = abs(self.current_observation['observation'][2])
                     gamma = abs(self.current_observation['observation'][3])
 
+                if self.current_observation[0] < 0 and self.current_observation[2] > 0:
+                    reward_add_on = 1
+                elif self.current_observation[0] > 0 and self.current_observation[2] < 0:
+                    reward_add_on = 1
+                else:
+                    reward_add_on = -2
+
                 reward_ang = 0.5*math.pi - (2*math.pi - alpha - (math.pi - beta) - gamma)
-                reward = reward_dis - abs(reward_ang)
+                reward = reward_dis - abs(reward_ang) + reward_add_on
             else:
                 reward = -10
                 reward_dis = 0
                 reward_ang = 0
+                reward_add_on = 0 
 
             if reward >= -0.05 or self.actions_taken >= 1:
                 done = True
@@ -123,7 +131,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 else:
                     reward = 0
 
-            self.print_step_info(action, reward, reward_dis, reward_ang)
+            self.print_step_info(action, reward, reward_dis, reward_ang, reward_add_on)
 
         self.step_called += 1
 
@@ -187,7 +195,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         mujoco_env.MujocoEnv.close(self)
         # cv.destroyAllWindows()
 
-    def print_step_info(self, action, reward, reward_dis, reward_ang):
+    def print_step_info(self, action, reward, reward_dis, reward_ang, reward_add_on):
         if self.mode == 'normal':
             print("######################################################################################################")
             print(f"action: \n {action}")
@@ -196,7 +204,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")
-            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}")
+            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}, reward_add_on: {reward_add_on}")
             print("######################################################################################################")
 
         elif self.mode == 'her':
@@ -207,7 +215,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             print("------------------------------------------------------------------------------------------------------")
             print(f"desired_goal: {self.desired_goal}\nachieved_goal: {self.achieved_goal}")
             print("------------------------------------------------------------------------------------------------------")
-            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}")
+            print(f"reward: {reward}; reward_distance: {reward_dis}, reward_angel: {reward_ang}, reward_add_on: {reward_add_on}")
             print("######################################################################################################")
 
 
