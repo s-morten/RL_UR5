@@ -107,11 +107,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     gamma = abs(self.current_observation['observation'][3])
 
                 if self.current_observation[0] < 0 and self.current_observation[2] > 0:
-                    reward_add_on = 1
+                    reward_add_on = 0 - abs(self.current_observation[4] + 0.5*math.pi)
                 elif self.current_observation[0] > 0 and self.current_observation[2] < 0:
-                    reward_add_on = 1
+                    reward_add_on = 0 - abs(self.current_observation[4] - 0.5*math.pi)
                 else:
-                    reward_add_on = -2
+                    reward_add_on = -3
 
                 reward_ang = 0.5*math.pi - (2*math.pi - alpha - (math.pi - beta) - gamma)
                 reward = reward_dis - abs(reward_ang) + reward_add_on
