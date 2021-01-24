@@ -49,6 +49,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.actions_taken = 0
         self.goal_mode = goal_mode
         self.controller.set_new_goal(mode=self.goal_mode)
+        self.coordinate_x = 0
+        self.coordinate_y = 0 
+        self.coordinate_depth = 0
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
@@ -90,7 +93,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             self.action = action
 
             if self.step_called == 1:
-                self.current_observation = self.get_observation(show=self.show_observations)
+                observation = self.get_observation(show=self.show_observations)
 
             joints = []
             # get joint positions
@@ -106,7 +109,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
             res_step_two = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
-            self.current_observation = self.get_observation()
+            observation = self.get_observation()
 
             if res_step_one == 'success' and res_step_two == 'success':
                 reward_dis = self.goal_distance(self.desired_goal, self.achieved_goal)
@@ -157,7 +160,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.step_called += 1
         print("step called: ", self.step_called)
 
-        return self.current_observation, reward, done, info
+        return observation, reward, done, info
 
     def reset(self, show_obs=True):
         """
@@ -171,21 +174,32 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         self.controller.move_group_to_joint_target(group='All', target=action)
 
-        return self.get_observation(show=self.show_observations)
+        observation = self.get_observation(show=self.show_observations, coordinates=True)
 
-    def get_observation(self, show=False):
+        return observation
+
+    def get_observation(self, show=False, coordinates=True):
         """
         Uses the controllers get_image_data method to return an top-down image (as a np-array).
         Args:
             show: If True, displays the observation in a cv2 window.
         """
+        if coordinates:
+            rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
+            depth = self.controller.depth_2_meters(depth)
 
-        rgb, depth = self.controller.get_image_data(width=self.IMAGE_WIDTH, height=self.IMAGE_HEIGHT, show=show, render=self.render)
-        depth = self.controller.depth_2_meters(depth)
+            circle_coordinates = self.ball_finder.find_circle(rgb)
 
-        circle_coordinates = self.ball_finder.find_circle(rgb)
+            depth_val = depth[circle_coordinates[0]][circle_coordinates[1]]
 
-        depth_val = depth[circle_coordinates[0]][circle_coordinates[1]]
+            self.coordinate_x = circle_coordinates[0]
+            self.coordinate_y = circle_coordinates[1]
+
+            self.coordinate_depth = depth_val
+
+        else: 
+            depth_val = self.coordinate_depth
+            circle_coordinates = np.array(self.coordinate_x, self.coordinate_y)
 
         joints = []
         # get joint positions
@@ -208,6 +222,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         else:
             print("SOMETHING WENT WRONG!")
+
+        self.current_observation = observation
 
         return observation
 
