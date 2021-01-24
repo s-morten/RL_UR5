@@ -108,7 +108,7 @@ Control Engineering / Automation Engineering
         <light name="light4" mode="targetbody" target="table" directional="true" pos="0 -0.55 0.2" />
         <!--Camera parameters-->
         <!--<camera name="main1" mode="fixed" target="ee_link" pos="2 2 2.7" axisangle="2 2 -2 1"/>-->
-        <camera name="top_down" mode="fixed" target="ee_link" pos="0 -0.6 2.0" axisangle="2 2 2 0"/>
+        <camera name="top_down" mode="fixed" target="ee_link" pos="0 -0.725 0.7" axisangle="2 2 2 0"/>
         <!--<camera name="side" mode="fixed" target="ee_link" pos="0.8 -0.6 1.0" quat="0.5 0.5 0.5 0.5"/>-->
         <camera name="behind" mode="targetbody" target="table" pos="0 -0.15 0.2"/>
         <!--Floor Property-->
@@ -199,8 +199,8 @@ Control Engineering / Automation Engineering
                                             <body name="robotiq_85_base_link" pos="0 0 0" quat="0.5 0.5 0.5 0.5 ">
                                             <inertial pos="0.00021987 -2.3546e-10 0.030163"  quat="0.707058 0.00723369 0.00723345 0.707081" mass="0.30915" diaginertia="0.00030737 0.000289758 0.000199102" />
                                             <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="robotiq_85_base_link_coarse" />
-
-                                            <body name="left_inner_knuckle" pos="0.0127 0 0.0693075">
+                                       
+					    <body name="left_inner_knuckle" pos="0.0127 0 0.0693075">
                                                 <inertial pos="0.0170975 -3.93809e-10 0.0224918"   quat="0.947655 0 -0.319297 0" mass="0.0110931" diaginertia="5.59353e-06 3.96549e-06 1.88108e-06" />
                                                 <geom type="mesh" rgba="0.1 0.1 0.1 1" friction="0.8 0.8 0.8" mesh="inner_knuckle_coarse" />
                                                  <joint name="base_to_lik" class="GRIPPER" pos="0 0 0" axis="0 1 0" limited="true" range="-1 1" />

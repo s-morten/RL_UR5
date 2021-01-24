@@ -69,7 +69,9 @@ class MJ_Controller(object):
         self.goal_goal_high = [0.25, -0.97, 0.075]
 
 
-        self.goal_goal_one = [0, -0.71, 0.075]
+        # self.goal_goal_one = [0, -0.71, 0.075]
+        self.goal_goal_one = [ 0, -0.71, 0.04]
+        self.goal_goal_nine = [[0, -0.25, 0.25],[-0.71, -0.5, -0.91],[0.04]]
         # only one goal
         # self.goal_goal_low = [0, -0.62, 0.075]
         # self.goal_goal_high = [0, -0.62, 0.075]
@@ -79,23 +81,29 @@ class MJ_Controller(object):
     def set_goal_range(self, input):
         self.goal_goal_low = input
         self.goal_goal_high = input
+        self.goal_goal_one = input
 
     def set_new_goal(self, mode):
 
         goal = np.zeros(3)
-        
+
         if mode == 'random':
             print("mode random")
             goal[0] = random.uniform(self.goal_goal_low[0], self.goal_goal_high[0])
             goal[1] = random.uniform(self.goal_goal_low[1], self.goal_goal_high[1])
             goal[2] = random.uniform(self.goal_goal_low[2], self.goal_goal_high[2])
-        
+
         elif mode == 'one':
             print("mode one")
             goal[0] = self.goal_goal_one[0]
             goal[1] = self.goal_goal_one[1]
             goal[2] = self.goal_goal_one[2]
 
+        elif mode == 'nine':
+            print("mode nine")
+            goal[0] = self.goal_goal_nine[0][random.randint(0,2)]
+            goal[1] = self.goal_goal_nine[1][random.randint(0,2)]
+            goal[2] = self.goal_goal_nine[2][0]
 
         self.model.body_pos[self.model.body_name2id('ball_1')] = goal
         self.current_goal=goal

@@ -25,14 +25,17 @@ for episode in range(1, N_EPISODES+1):
         #env.controller.display_current_values()
         print('#################################################################')
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
-        action = [1.8, -2.2, -1.8, -1.0, 1.57, 1.57]
+        action = [2.05385685, -2.14378381, -1.75706029, -1.28485382,  1.63127255, -0.15108907]
+        # action = [ -1.57, -1.57, 1.57, -1.57, -1.57, 0.0]
+
+        #[-1.78003502 ,-1.11123502 , 1.72905064 ,-1.86722529, -1.42605662 , 0.08497795]
         # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0]
         # action = env.action_space.sample()
-        
+
         observation, reward, done, _ = env.step(action)
         if done:
             break
-        
+
 env.plot_actions()
 env.close()
 

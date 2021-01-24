@@ -15,7 +15,7 @@ MODEL_XML_PATH = '/home/morten/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_fin
 # MODEL_XML_PATH = '/home/morten/Documents/code/RL_husky/ur5_env/ur5_env/env/xml/UR5gripper_2_finger.xml'
 
 class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
-    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, mode='normal', goal_mode='one'):
+    def __init__(self, reward_type='sparse', render=False, image_width=600, image_height=300, show_obs=False, mode='normal', goal_mode='nine'):
         self.initialized = False
         self.mode = mode
         self.IMAGE_WIDTH = image_width
@@ -32,10 +32,16 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.render = render
         self.distance_threshold = 0.1
         self._max_episode_steps = 1000
+        #self.action_space = spaces.Box(np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]),
+        #                               np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]), dtype=np.float32)
+        #self.action_space = spaces.Box(np.array([-3.14159, -1.57079,        0, -3.14159, -1.57, 0]),
+        #                                np.array([      0,        0, +3.14159,        0, -1.57, 0]), dtype=np.float32)
         self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
-                                       np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+                                        np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
         #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
+        #self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159]),
+        #                               np.array([+3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
@@ -46,9 +52,14 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
+        #self.action_space = spaces.Box(np.array([-3.14159, -1.57079,        0, -3.14159, -1.57, 0]),
+        #                                np.array([      0,        0, +3.14159,        0, -1.57, 0]), dtype=np.float32)
         self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
                                        np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
-
+        #self.action_space = spaces.Box(np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]),
+        #                               np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]), dtype=np.float32)
+        #self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159]),
+        #                               np.array([+3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
@@ -72,6 +83,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         else:
             self.actions_taken += 1
             # add position of grapper to move target
+            #action = np.append(action, [-1.57])
+            #action = np.append(action, [0.0])
             action = np.append(action, [0.3])
 
             self.action = action
@@ -91,8 +104,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             joints[6] = action[6]
 
 
-            res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
-            res_step_two = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.033, max_steps=1000, render=self.render, quiet=False, marker=True)
+            res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
+            res_step_two = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
             self.current_observation = self.get_observation()
 
             if res_step_one == 'success' and res_step_two == 'success':
@@ -111,15 +124,22 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 elif self.current_observation[0] > 0 and self.current_observation[2] < 0:
                     reward_add_on = 0 - abs(self.current_observation[4] - 0.5*math.pi)
                 else:
-                    reward_add_on = -3
+                    reward_add_on = -25
+                # reward_add_on = 0
 
                 reward_ang = 0.5*math.pi - (2*math.pi - alpha - (math.pi - beta) - gamma)
-                reward = reward_dis - abs(reward_ang) + reward_add_on
+                # reward = -((10*reward_dis)*(10*reward_dis))/10 - abs(reward_ang) + reward_add_on
+
+                reward = -0.5 * math.log2( reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2) ) + 0.5
+                #if reward <= 0:
+                #    reward = -5
+                if reward_dis <= 0.01:
+                    reward = 10
             else:
-                reward = -10
+                reward = -100
                 reward_dis = 0
                 reward_ang = 0
-                reward_add_on = 0 
+                reward_add_on = 0
 
             if reward >= -0.05 or self.actions_taken >= 1:
                 done = True
@@ -130,12 +150,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     reward = 1
                 else:
                     reward = 0
-
+            #if reward_dis <= 0.1:
+            #    self.print_to_file(reward_dis, action, self.current_observation, reward, done)
             self.print_step_info(action, reward, reward_dis, reward_ang, reward_add_on)
 
         self.step_called += 1
-
-        self.print_to_file(self.current_observation, reward, done)
+        print("step called: ", self.step_called)
 
         return self.current_observation, reward, done, info
 
@@ -241,16 +261,24 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         tmp = 0.0
         for i in range(3):
             tmp = goal_a[i] - goal_b[i]
-            if tmp < 0:
-                sum += tmp
-            else:
-                sum -= tmp
+            sum += tmp*tmp
+            # if tmp < 0:
+            #     sum += tmp
+            # else:
+            #     sum -= tmp
+        sum = math.sqrt(sum)
         return sum
 
-    def print_to_file(self, obs, reward, done):
-        f = open("results_one_angle_ppo.txt", "a")
+    def print_to_file(self, reward_dis, action, obs, reward, done):
+        f = open("good_res.txt", "a")
         # f.write(np.array2string(obs))
-        f.write(str(reward))
+        f.write(str(reward_dis))
+        f.write(", ")
+        f.write(str(action))
         # f.write(str(done))
         f.write("\n")
         f.close()
+
+    def render(self):
+        print("render")
+        print(self.action)
