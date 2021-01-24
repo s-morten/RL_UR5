@@ -71,6 +71,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
         if not self.initialized:
             if self.mode == 'normal':
+                observation = np.zeros((10))
                 self.current_observation = np.zeros((10))
 
             elif self.mode == 'her':
