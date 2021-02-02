@@ -115,7 +115,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 debug2 = np.append(debug2, math.degrees(tmp))
             # action = np.append(action, [0.3])
             action = np.append(action_buffer, [0.3])
-            print("action after: ", actioSn)
+            print("action after: ", action)
             print("state after radians: ", debug)
 
             self.action = action
