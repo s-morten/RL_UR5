@@ -95,11 +95,15 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #action = np.append(action, [-1.57])
             #action = np.append(action, [0.0])
             state = self.current_observation
+            rad_state = []
+            for j in range(6):
+                rad_state = np.append(rad_state, radians(state[j]))
+
             print("state before: ", state)
             action_buffer = []
             debug = []
             for i in range(6):
-                tmp = math.radians(state[i]) + action[i]
+                tmp = math.radians(state[i] + action[i])
                 if tmp > math.pi or tmp < -math.pi:
                     all_actions_allowed = False
                     print("unallowed action, lol!")
