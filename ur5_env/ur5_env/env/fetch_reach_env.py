@@ -134,7 +134,22 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward_ang = 0.5*math.pi - (2*math.pi - alpha - (math.pi - beta) - gamma)
                 # reward = -((10*reward_dis)*(10*reward_dis))/10 - abs(reward_ang) + reward_add_on
 
-                reward = -0.5 * math.log2( reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2) ) + 0.5
+                # reward = -0.5 * math.log2( reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2) ) + 0.5
+                reward = reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2)
+                
+                if reward <= 2:
+                    reward = -0.5 * math.log2(reward) + 0.5
+                else:
+                    reward = -0.5*reward+1
+
+
+                #if reward <= 2:
+                #    reward = -2.01 * reward + 5.02
+                #elif reward <= 4:
+                #    reward = -0.5 * reward + 2
+                #else:
+                #    reward = -1
+
                 #if reward <= 0:
                 #    reward = -5
                 if reward_dis <= 0.01:
