@@ -95,15 +95,19 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #action = np.append(action, [-1.57])
             #action = np.append(action, [0.0])
             state = self.current_observation
+            print("state before: ", state)
             action_buffer = []
+            debug = []
             for i in range(6):
                 tmp = math.radians(state[i]) + action[i]
                 if tmp > math.pi or tmp < -math.pi:
                     all_actions_allowed = False
                     print("unallowed action, lol!")
                 action_buffer = np.append(action_buffer, math.degrees(tmp))
+                debug = np.append(debug, tmp)
             # action = np.append(action, [0.3])
             action = np.append(action_buffer, [0.3])
+            print("state after: ", debug)
 
             self.action = action
 
@@ -174,7 +178,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward_ang = 0
                 reward_add_on = 0
 
-            if reward >= -0.05 or self.actions_taken >= 1:
+            # if reward >= -0.01 or self.actions_taken >= 1:
+            if reward >= -0.01 or self.actions_taken >= 1000:
                 done = True
                 self.actions_taken = 0
 
