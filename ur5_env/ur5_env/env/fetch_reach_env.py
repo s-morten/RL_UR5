@@ -97,7 +97,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             state = self.current_observation
             rad_state = []
             for j in range(6):
-                rad_state = np.append(rad_state, radians(state[j]))
+                rad_state = np.append(rad_state, math.radians(state[j]))
 
             print("state before: ", state)
             action_buffer = []
