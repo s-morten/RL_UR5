@@ -99,9 +99,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             for j in range(6):
                 rad_state = np.append(rad_state, math.radians(state[j]))
 
-            print("state before: ", state)
+            print("state before radians: ", rad_state)
+            print("state before degrees: ", state)
+            print("action: ", action)
             action_buffer = []
             debug = []
+            debug2 = []
             for i in range(6):
                 tmp = math.radians(state[i] + action[i])
                 if tmp > math.pi or tmp < -math.pi:
@@ -109,9 +112,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     print("unallowed action, lol!")
                 action_buffer = np.append(action_buffer, math.degrees(tmp))
                 debug = np.append(debug, tmp)
+                debug2 = np.append(debug2, math.degrees(tmp))
             # action = np.append(action, [0.3])
             action = np.append(action_buffer, [0.3])
-            print("state after: ", debug)
+            print("action after: ", actioSn)
+            print("state after radians: ", debug)
 
             self.action = action
 
