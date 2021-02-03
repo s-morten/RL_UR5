@@ -99,9 +99,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             for j in range(6):
                 deg_state = np.append(deg_state, math.degrees(state[j]))
 
-            print("state before radians: ", state)
-            print("state before degrees: ", deg_state)
-            print("action: ", action)
+            #print("state before radians: ", state)
+            #print("state before degrees: ", deg_state)
+            #print("action: ", action)
             action_buffer = []
             debug = []
             debug2 = []
@@ -119,9 +119,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 debug2 = np.append(debug2, math.degrees(tmp))
             # action = np.append(action, [0.3])
             action = np.append(action_buffer, [0.3])
-            print("action after: ", action)
-            print("state after radians: ", debug)
-            print("state after degrees: ", debug2)
+            #print("action after: ", action)
+            #print("state after radians: ", debug)
+            #print("state after degrees: ", debug2)
 
             self.action = action
 
@@ -178,7 +178,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward_add_on = 0
 
             # if reward >= -0.01 or self.actions_taken >= 1:
-            if reward >= -0.01 or self.actions_taken >= 1000:
+            if reward == 10 or self.actions_taken >= 1000:
                 done = True
                 self.actions_taken = 0
 
