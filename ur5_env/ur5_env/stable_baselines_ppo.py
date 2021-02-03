@@ -7,11 +7,11 @@ from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines import PPO2
 
 # multiprocess environment
-env = gym.make('ur5-v0', goal_mode='nine')
+env = gym.make('ur5-v0', goal_mode='random')
 # env = make_vec_env('ur5-v0')
 # env = DummyVecEnv([lambda: gym.make('ur5-v0')])
-model = PPO2(MlpPolicy, env, verbose=1, gamma=0, learning_rate=0.001, tensorboard_log='./log_nine_lt')
+model = PPO2(MlpPolicy, env, verbose=1,tensorboard_log='./log_nine_new_step_norm_param')
 # model = PPO2.load("ppo2_model_less_as", env=env, verbose=1, gamma=0, learning_rate=0.001, tensorboard_log='./log2')
 # model.set_env(env)
 model.learn(total_timesteps=100000)
-model.save("ppo2_model_nine_100000_lt")
+model.save("ppo2_model_nine_100000_new_step_norm_param")
