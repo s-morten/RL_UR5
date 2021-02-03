@@ -95,9 +95,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #action = np.append(action, [-1.57])
             #action = np.append(action, [0.0])
             state = self.current_observation
-            rad_state = []
+            deg_state = []
             for j in range(6):
-                rad_state = np.append(rad_state, math.radians(state[j]))
+                rad_state = np.append(rad_state, math.degrees(state[j]))
 
             print("state before radians: ", rad_state)
             print("state before degrees: ", state)
@@ -248,7 +248,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         joints = []
         # get joint positions
         for i in range(len(self.controller.actuated_joint_ids)):
-            joints = np.append(joints, math.degrees(self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i]))
+            joints = np.append(joints, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
 
         self.desired_goal = self.controller.current_goal
         self.achieved_goal = (self.controller.sim.data.body_xpos[self.model.body_name2id('left_inner_finger')] + self.controller.sim.data.body_xpos[self.model.body_name2id('right_inner_finger')]) / 2
