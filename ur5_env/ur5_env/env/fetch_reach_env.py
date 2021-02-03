@@ -193,7 +193,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 reward_add_on = 0
 
             # if reward >= -0.01 or self.actions_taken >= 1:
-            if reward >= -0.01 or self.actions_taken >= 1000:
+            if reward == 10 or self.actions_taken >= 1000:
                 done = True
                 self.actions_taken = 0
 
