@@ -97,9 +97,9 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             state = self.current_observation
             deg_state = []
             for j in range(6):
-                rad_state = np.append(rad_state, math.degrees(state[j]))
+                deg_state = np.append(deg_state, math.degrees(state[j]))
 
-            print("state before radians: ", rad_state)
+            print("state before radians: ", deg_state)
             print("state before degrees: ", state)
             print("action: ", action)
             action_buffer = []
