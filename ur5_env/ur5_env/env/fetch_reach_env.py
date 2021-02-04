@@ -42,8 +42,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         #self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159]),
         #                               np.array([+3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
-        self.action_space = spaces.Box(np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
-                                        np.array([+1.0, +1.0, +1.0, +1.0, +1.0, +1.0]), dtype=np.float32)
+        # self.action_space = spaces.Box(np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
+        #                                np.array([+1.0, +1.0, +1.0, +1.0, +1.0, +1.0]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-5.0, -5.0, -5.0, -5.0, -5.0, -5.0]),
+                                        np.array([+5.0, +5.0, +5.0, +5.0, +5.0, +5.0]), dtype=np.float32)
         self.desired_goal = []
         self.achieved_goal = []
         self.action = [0, 0, 0, 0, 0, 0, 0]
@@ -55,6 +57,20 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.coordinate_y = 0 
         self.coordinate_depth = 0
 
+        # plotting
+        # self.joint0 = []
+        # self.joint1 = []
+        # self.joint2 = []
+        # self.joint3 = []
+        # self.joint4 = []
+        # self.joint5 = []
+        # self.action0 = []
+        # self.action1 = []
+        # self.action2 = []
+        # self.action3 = []
+        # self.action4 = []
+        # self.action5 = []
+
     def _set_action_space(self):
         # self.action_space = spaces.MultiDiscrete([self.IMAGE_HEIGHT*self.IMAGE_WIDTH, len(self.rotations)])
         #self.action_space = spaces.Box(np.array([-3.14159, -1.57079,        0, -3.14159, -1.57, 0]),
@@ -65,8 +81,10 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #                               np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]), dtype=np.float32)
         #self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159]),
         #                               np.array([+3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
-        self.action_space = spaces.Box(np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
-                                        np.array([+1.0, +1.0, +1.0, +1.0, +1.0, +1.0]), dtype=np.float32)
+        #self.action_space = spaces.Box(np.array([-1.0, -1.0, -1.0, -1.0, -1.0, -1.0]),
+        #                                np.array([+1.0, +1.0, +1.0, +1.0, +1.0, +1.0]), dtype=np.float32)
+        self.action_space = spaces.Box(np.array([-5.0, -5.0, -5.0, -5.0, -5.0, -5.0]),
+                                        np.array([+5.0, +5.0, +5.0, +5.0, +5.0, +5.0]), dtype=np.float32)
         return self.action_space
 
     def step(self, action, markers=False):
@@ -118,10 +136,14 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 debug = np.append(debug, tmp)
                 debug2 = np.append(debug2, math.degrees(tmp))
             # action = np.append(action, [0.3])
-            action = np.append(action_buffer, [0.3])
+            if all_actions_allowed:
+                action = np.append(action_buffer, [0.3])
+            else:
+                action = state[:6]
             #print("action after: ", action)
             #print("state after radians: ", debug)
             #print("state after degrees: ", debug2)
+            self.print_to_file(action=action)
 
             self.action = action
 
@@ -257,6 +279,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         else:
             print("SOMETHING WENT WRONG!")
 
+        self.print_to_file(state=joints)
+
         self.current_observation = observation
 
         return observation
@@ -319,13 +343,12 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         sum = math.sqrt(sum)
         return sum
 
-    def print_to_file(self, reward_dis, action, obs, reward, done):
-        f = open("good_res.txt", "a")
-        # f.write(np.array2string(obs))
-        f.write(str(reward_dis))
-        f.write(", ")
-        f.write(str(action))
-        # f.write(str(done))
+    def print_to_file(self, action = None, state=None):
+        f = open("plot.txt", "a")
+        if state is not None:
+            f.write(str(state))
+        if action is not None:
+            f.write(str(action))
         f.write("\n")
         f.close()
 
