@@ -212,6 +212,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     reward = 0
             #if reward_dis <= 0.1:
             #    self.print_to_file(reward_dis, action, self.current_observation, reward, done)
+            self.print_to_reward(reward=reward, distance=reward_dis)
             self.print_step_info(action, reward, reward_dis, reward_ang, reward_add_on)
 
         self.step_called += 1
@@ -351,7 +352,13 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 f.write(f"O{i}: {str(state[i])}")
         if action is not None:
             for i in range(7):
-                f.write(f"A{i}: {str(state[i])}")
+                f.write(f"A{i}: {str(action[i])}")
+        f.close()
+
+    def print_to_reward(self, reward=0, distance=0)
+        f = open("reward.txt", "a")
+        f.write(f"R: {str(reward)}\n")
+        f.write(f"D: {str(distance)}\n")
         f.close()
 
     def render(self):
