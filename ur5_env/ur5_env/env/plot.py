@@ -1,22 +1,26 @@
 import matplotlib.pyplot as plt
 
-f = open("results.txt", "r")
-plt_values = []
-tmp = 0
-cnt = 0
+f = open("/run/media/morten/C01B-395D/plot.txt", "r")
+plt_actions = []
+plt_states = []
+action = []
 
 for line in f:
-    rew = line.rstrip()
-    # if float(rew) > -10:
-    #     tmp += float(rew)
-    #     cnt += 1
-    tmp += float(rew)
-    cnt += 1
-    if cnt >= 100:
-        cnt = 0
-        plt_values.append(tmp / 100)
-        tmp = 0
+    if line[0] == "O":
+        plt_states.append(line[3:])
+    if line[0] == "A":
+        plt_actions.append(line[3:])
 
-# plt_values.append(tmp)
-plt.plot(plt_values)
+print(plt_actions)
+
+for i in range(len(plt_actions)):
+    for j in range(len(plt_actions[i])):
+        action[j].append(plt_actions[i][j])
+
+plt.plot(action[0])
+plt.plot(action[1])
+plt.plot(action[2])
+plt.plot(action[3])
+plt.plot(action[4])
+plt.plot(action[5])
 plt.show()
