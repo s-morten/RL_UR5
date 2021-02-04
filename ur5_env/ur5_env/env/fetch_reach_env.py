@@ -347,10 +347,11 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
     def print_to_file(self, action = None, state=None):
         f = open("plot.txt", "a")
         if state is not None:
-            f.write(str(state))
+            for i in range(7):
+                f.write(f"O{i}: {str(state[i])}")
         if action is not None:
-            f.write(str(action))
-        f.write("\n")
+            for i in range(7):
+                f.write(f"A{i}: {str(state[i])}")
         f.close()
 
     def render(self):
