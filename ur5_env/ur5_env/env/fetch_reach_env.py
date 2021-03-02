@@ -36,7 +36,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         #                               np.array([-1.7 ,-0.9 , 1.85 ,-2.5 ,-1.57 , -0.3373]), dtype=np.float32)
         #self.action_space = spaces.Box(np.array([-3.14159, -1.57079,        0, -3.14159, -1.57, 0]),
         #                                np.array([      0,        0, +3.14159,        0, -1.57, 0]), dtype=np.float32)
-        # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
+        #self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
         #                                 np.array([+3.14159, +3.14159, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
         # self.action_space = spaces.Box(np.array([-3.14159, -3.14159, -3.14159, -3.14159, -3.14159, -3.14159]),
         #                                np.array([+3.14159,        0, +3.14159, +3.14159, +3.14159, +3.14159]), dtype=np.float32)
@@ -54,7 +54,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.goal_mode = goal_mode
         self.controller.set_new_goal(mode=self.goal_mode)
         self.coordinate_x = 0
-        self.coordinate_y = 0 
+        self.coordinate_y = 0
         self.coordinate_depth = 0
 
         # plotting
@@ -121,8 +121,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
             #print("state before degrees: ", deg_state)
             #print("action: ", action)
             action_buffer = []
-            debug = []
-            debug2 = []
+            #debug = []
+            #debug2 = []
             for i in range(6):
                 tmp = math.radians(deg_state[i] + action[i])
                 if tmp > math.pi or tmp < -math.pi:
@@ -133,17 +133,18 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                         tmp = -math.pi
                     print("unallowed action, lol!")
                 action_buffer = np.append(action_buffer, tmp)
-                debug = np.append(debug, tmp)
-                debug2 = np.append(debug2, math.degrees(tmp))
-            # action = np.append(action, [0.3])
+            #    debug = np.append(debug, tmp)
+            #    debug2 = np.append(debug2, math.degrees(tmp))
+            #action = np.append(action, [0.3])
             if all_actions_allowed:
                 action = np.append(action_buffer, [0.3])
-            else:
-                action = state[:6]
-                action = np.append(action, [0.3])
+            #else:
+            #    action = state[:6]
+            #    action = np.append(action, [0.3])
             #print("action after: ", action)
             #print("state after radians: ", debug)
             #print("state after degrees: ", debug2)
+            #action = np.append(action, [0.3])
             self.print_to_file(action=action)
 
             self.action = action
@@ -153,17 +154,17 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
             joints = []
             # get joint positions
-            for i in range(len(self.controller.actuated_joint_ids)):
-                joints = np.append(joints, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
-            joints[0] = action[0]
-            joints[2] = action[2]
-            joints[3] = action[3]
-            joints[4] = action[4]
-            joints[5] = action[5]
-            joints[6] = action[6]
+            #for i in range(len(self.controller.actuated_joint_ids)):
+            #    joints = np.append(joints, self.controller.sim.data.qpos[self.controller.actuated_joint_ids][i])
+            #joints[0] = action[0]
+            #joints[2] = action[2]
+            #joints[3] = action[3]
+            #joints[4] = action[4]
+            #joints[5] = action[5]
+            #joints[6] = action[6]
 
-
-            res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
+            res_step_one = "success"
+            # res_step_one = self.controller.move_group_to_joint_target(group='All', target=joints, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
             res_step_two = self.controller.move_group_to_joint_target(group='All', target=action, tolerance=0.01, max_steps=1000, render=self.render, quiet=False, marker=True)
             observation = self.get_observation()
 
@@ -190,14 +191,19 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                 # reward = -((10*reward_dis)*(10*reward_dis))/10 - abs(reward_ang) + reward_add_on
 
                 # reward = -0.5 * math.log2( reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2) ) + 0.5
-                reward = reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2)
+                # reward = reward_dis + (abs(reward_ang)/2) + (abs(reward_add_on)/2)
                 
-                if reward <= 2:
-                    reward = -0.5 * math.log2(reward) + 0.5
+                if reward_dis <= 2:
+                    reward = -0.5 * math.log2(reward_dis) + 0.5 - abs(reward_ang) - abs(reward_add_on)
+                    # reward = -1*math.log10(reward_dis) - abs(reward_ang) - abs(reward_add_on)
                 else:
-                    reward = -0.5*reward+1
+                    reward = -0.5 * reward_dis + 1 - abs(reward_ang) - abs(reward_add_on)
 
-
+                if reward_dis <= 0.05:
+                    reward = 10 -abs(reward_add_on) -abs(reward_ang)
+                    if reward >= 9.85:
+                        reward = 20
+                        done = True
                 #if reward <= 2:
                 #    reward = -2.01 * reward + 5.02
                 #elif reward <= 4:
@@ -207,16 +213,24 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
 
                 #if reward <= 0:
                 #    reward = -5
-                if reward_dis <= 0.01:
-                    reward = 10
+                #if reward_dis <= 0.01:
+                #    reward = 10
+
+                #if reward_dis > 0.05:
+                #    reward = -2 * reward_dis + 1
+                #else:
+                #    reward = 10 - abs(reward_add_on) - abs(reward_ang)
+                #    if reward > 9.85:
+                #        reward = 20
+                #        done = True
             else:
                 reward = -100
-                reward_dis = 0
+                reward_dis = 100
                 reward_ang = 0
                 reward_add_on = 0
 
             # if reward >= -0.01 or self.actions_taken >= 1:
-            if reward == 10 or self.actions_taken >= 250:
+            if self.actions_taken >= 17:
                 done = True
                 self.actions_taken = 0
 
@@ -227,6 +241,7 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
                     reward = 0
             #if reward_dis <= 0.1:
             #    self.print_to_file(reward_dis, action, self.current_observation, reward, done)
+            self.print_to_reward(reward=reward, distance=reward_dis)
             self.print_step_info(action, reward, reward_dis, reward_ang, reward_add_on)
 
         self.step_called += 1
@@ -243,7 +258,8 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         self.controller.sim.reset()
 
         self.controller.set_new_goal(mode=self.goal_mode)
-        action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        # action = [0, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
+        action = [-1.57, -1.57, 1.57, -1.57, -1.57, 0.0, 0.3]
         self.controller.move_group_to_joint_target(group='All', target=action)
 
         observation = self.get_observation(show=self.show_observations, coordinates=True)
@@ -360,13 +376,19 @@ class UR5(mujoco_env.MujocoEnv, utils.EzPickle):
         return sum
 
     def print_to_file(self, action = None, state=None):
-        f = open("plot.txt", "a")
+        f = open("/home/morten/log_2_100k_lr001_steps128/plot.txt", "a")
         if state is not None:
             for i in range(7):
                 f.write(f"O{i}: {str(state[i])}\n")
         if action is not None:
             for i in range(7):
                 f.write(f"A{i}: {str(action[i])}\n")
+        f.close()
+
+    def print_to_reward(self, reward=0, distance=0):
+        f = open("/home/morten/log_2_100k_lr001_steps128/reward.txt", "a")
+        f.write(f"R: {str(reward)}\n")
+        f.write(f"D: {str(distance)}\n")
         f.close()
 
     def render(self):
