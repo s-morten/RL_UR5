@@ -2,10 +2,11 @@ from cv2 import cv2
 import numpy as np
 from PIL import Image
 
-class Ball_Finder():
-    '''
+
+class Ball_Finder:
+    """
     very bad way of finding position of ball, hough circles was failing misarably, ml to find ball in future?
-    '''
+    """
 
     def find_circle(self, image_array):
         # get image
@@ -18,7 +19,7 @@ class Ball_Finder():
         high_blue = np.array([126, 255, 255])
         blue_mask = cv2.inRange(hsv_frame, low_blue, high_blue)
         blue = cv2.bitwise_and(img, img, mask=blue_mask)
-        
+
         i, j = self.get_circle_coordinates(blue)
         return i, j
 
